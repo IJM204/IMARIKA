@@ -41,9 +41,10 @@ An intelligent agricultural advisory system powered by LangGraph, Knowledge Grap
 ```
 offline_agri_rag_ollama/
 ├── 🎯 Core System
-│   ├── langgraph_imarika.py          # Main LangGraph agent system
-│   ├── knowledge_graph.py            # Knowledge graph builder & query
-│   ├── streamlit_openwebui_style.py  # Modern chat interface
+│   ├── core/
+│   │   ├── langgraph_imarika.py      # Main LangGraph agent system
+│   │   ├── knowledge_graph.py        # Knowledge graph builder & query
+│   │   └── streamlit_chatgpt_style.py # ChatGPT-style interface
 │   └── run.py                        # Main runner script
 │
 ├── 📊 Data & Storage
@@ -56,7 +57,9 @@ offline_agri_rag_ollama/
 │   │   └── sweet_potatoes.csv
 │   └── chroma_db/                   # Vector database (legacy)
 │
-├── 🔧 Configuration
+├── 🔧 Configuration & Utils
+│   ├── utils/
+│   │   └── visualize_knowledge_graph.py # Graph visualization
 │   ├── requirements.txt             # Python dependencies
 │   ├── .env.example                 # Environment variables template
 │   ├── .streamlit/config.toml       # Streamlit configuration
@@ -67,13 +70,14 @@ offline_agri_rag_ollama/
 │   ├── legacy/                      # Original implementations
 │   │   ├── rag_agent+sw.py         # Original RAG system
 │   │   ├── streamlit_app+sw.py     # Original Streamlit app
-│   │   └── improvements_suggestions.py
+│   │   └── streamlit_openwebui_style.py # OpenWebUI-style interface
 │   └── examples/                    # Architecture examples
 │       ├── agentic_architecture.py # LangGraph examples
 │       └── streamlit_langgraph.py  # Alternative interfaces
 │
 └── 📖 Documentation
     ├── README.md                    # This file
+    ├── SETUP.md                     # Quick setup guide
     └── docs/                        # Architecture diagrams
         ├── Flowchart.jpg
         └── Flowchart1.jpg
@@ -111,7 +115,7 @@ cp .env.example .env
 
 4. **Run the System**
 ```bash
-# Quick start - Chat interface
+# Quick start - ChatGPT-style interface
 python run.py
 
 # Or specific modes
@@ -132,11 +136,18 @@ python run.py build-kg  # Rebuild knowledge graph
 - **22 Nodes**: Crops, nutrients, pests, activities, growth stages
 - **72 Edges**: Relationships like "needs", "attacks", "affects"
 - **Graph Queries**: Traversal-based information retrieval
+- **Interactive Viewer**: Built-in graph visualization in chat interface
 
 ### 🌤️ Weather Integration
 - Real-time weather data from OpenWeather API
 - Agricultural advice based on current conditions
 - Location-aware recommendations
+
+### 💬 ChatGPT-Style Interface
+- Clean, modern chat design similar to ChatGPT
+- Typing indicators and smooth interactions
+- Built-in recommendations for quick queries
+- Expandable knowledge graph viewer
 
 ### 🌍 Multilingual Support
 - English and Swahili responses
@@ -205,34 +216,64 @@ docker-compose up -d
 # Access at http://localhost:8501
 ```
 
+## 📊 Knowledge Graph Visualization
+
+### Interactive Viewer
+- Built into the chat interface
+- Expandable section with graph visualization
+- Real-time graph statistics and node information
+
+### Generate Standalone Visualization
+```bash
+python -m utils.visualize_knowledge_graph
+```
+
+**Outputs:**
+- `knowledge_graph_visualization.png` - Visual network diagram
+- `knowledge_graph_data.json` - Complete graph data for analysis
+
+### Graph Statistics
+- **Nodes**: 22 (6 crops, 7 nutrients, 5 pests, 4 activities)
+- **Relationships**: 72 connections
+- **Relation Types**: needs, attacks, requires, has_stage
+
+### Node Categories
+```
+Crops: Beans, Cassava, Finger Millet, Maize, Sorghum, Sweet Potatoes
+Nutrients: Nitrogen, Phosphorus, Potassium, Manure, Compost, DAP, NPK
+Pests: Weevil, Borer, Aphid, Caterpillar, Termite
+Activities: Land preparation, Planting, Weeding, Harvesting
+Stages: Germination, Vegetative, Flowering, Maturity
+```
+
 ## 🧪 Testing
 
 ### Test Knowledge Graph
 ```bash
-python knowledge_graph.py
+python run.py build-kg
 # Output: Shows nodes, edges, and relationship queries
 ```
 
 ### Test LangGraph Agent
 ```bash
-python langgraph_imarika.py
+python run.py test
 # Output: Runs test queries through the full pipeline
 ```
 
 ### Interactive Testing
 ```bash
-streamlit run streamlit_openwebui_style.py
+python run.py chat
 # Access: http://localhost:8501
 ```
 
 ## 🔄 System Flow
 
-1. **User Input** → Query received
+1. **User Input** → Query received via ChatGPT-style interface
 2. **Planner Agent** → Analyzes intent and determines tools needed
 3. **Tool Router** → Selects weather API and/or knowledge graph
 4. **Executor** → Runs tools and gathers data
 5. **Synthesizer** → Combines results and generates response
-6. **Response** → Delivered to user via chat interface
+6. **Response** → Delivered with typing animation and formatting
 
 ## 📈 Performance
 
@@ -240,6 +281,7 @@ streamlit run streamlit_openwebui_style.py
 - **Response Time**: ~2-5 seconds (depending on Ollama model)
 - **Memory Usage**: ~2GB (with loaded models)
 - **Supported Languages**: English, Swahili
+- **Interface**: Responsive ChatGPT-style design
 
 ## 🛠️ Troubleshooting
 
@@ -253,15 +295,22 @@ ollama pull llama3  # Install missing models
 
 2. **Knowledge Graph Empty**
 ```bash
-python knowledge_graph.py  # Rebuild graph from CSV data
+python run.py build-kg  # Rebuild graph from CSV data
 ```
 
 3. **Streamlit Port Issues**
 ```bash
-streamlit run streamlit_openwebui_style.py --server.port 8502
+python run.py chat --server.port 8502
 ```
 
-4. **Weather API Errors**
+4. **Import Errors**
+```bash
+# Ensure you're in the project root directory
+cd offline_agri_rag_ollama
+python run.py
+```
+
+5. **Weather API Errors**
 - Check API key in environment variables
 - System works without weather data if API unavailable
 

@@ -12,4 +12,5 @@ python-dotenv
 pandas
 chromadb
 networkx
+matplotlib
 networkx

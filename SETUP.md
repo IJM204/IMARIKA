@@ -20,7 +20,7 @@ pip install -r requirements.txt
 ollama pull llama3
 ollama pull mxbai-embed-large
 
-# 4. Start the system
+# 4. Start the ChatGPT-style interface
 python run.py
 ```
 
@@ -33,13 +33,14 @@ python run.py build-kg
 # Run system tests
 python run.py test
 
-# Start chat interface
+# Start ChatGPT-style chat interface
 python run.py chat
 ```
 
 ## Access Points
 
-- **Chat Interface**: http://localhost:8501
+- **ChatGPT-Style Interface**: http://localhost:8501
+- **Knowledge Graph Viewer**: Built into chat interface
 - **System Status**: Check terminal output
 - **Logs**: Streamlit logs in terminal
 

@@ -43,12 +43,23 @@ class AgriKnowledgeGraph:
                                     self.graph.add_node(nutrient.title(), type="nutrient")
                                     self.graph.add_edge(crop_node, nutrient.title(), relation="needs")
                             
-                            # Extract pests
-                            pests = ['weevil', 'borer', 'aphid', 'caterpillar', 'termite']
-                            for pest in pests:
+                            # Extract pests and pest-related terms
+                            pest_terms = ['weevil', 'borer', 'aphid', 'caterpillar', 'termite', 'insect', 'pest', 'wadudu', 'rodent', 'panya']
+                            for pest in pest_terms:
                                 if pest in text:
-                                    self.graph.add_node(pest.title(), type="pest")
-                                    self.graph.add_edge(pest.title(), crop_node, relation="attacks")
+                                    pest_name = pest.title() if pest != 'wadudu' else 'Insects'
+                                    if pest == 'panya':
+                                        pest_name = 'Rodents'
+                                    self.graph.add_node(pest_name, type="pest")
+                                    self.graph.add_edge(pest_name, crop_node, relation="attacks")
+                            
+                            # Extract diseases
+                            disease_terms = ['disease', 'magonjwa', 'rot', 'blight', 'wilt', 'fungal', 'bacterial']
+                            for disease in disease_terms:
+                                if disease in text:
+                                    disease_name = disease.title() if disease != 'magonjwa' else 'Diseases'
+                                    self.graph.add_node(disease_name, type="disease")
+                                    self.graph.add_edge(disease_name, crop_node, relation="affects")
             except:
                 continue
     

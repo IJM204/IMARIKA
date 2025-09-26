@@ -13,7 +13,7 @@ def run_chat():
     """Launch the Streamlit chat interface"""
     print("🌾 Starting Imarika Chat Interface...")
     subprocess.run([
-        "streamlit", "run", "streamlit_openwebui_style.py",
+        "streamlit", "run", "core/streamlit_chatgpt_style.py",
         "--server.port", "8501",
         "--server.headless", "true"
     ])
@@ -24,16 +24,16 @@ def run_test():
     
     # Test knowledge graph
     print("\n1. Testing Knowledge Graph...")
-    subprocess.run(["python", "knowledge_graph.py"])
+    subprocess.run(["python", "-m", "core.knowledge_graph"])
     
     # Test LangGraph agent
     print("\n2. Testing LangGraph Agent...")
-    subprocess.run(["python", "langgraph_imarika.py"])
+    subprocess.run(["python", "-m", "core.langgraph_imarika"])
 
 def build_knowledge_graph():
     """Rebuild knowledge graph from CSV data"""
     print("📊 Building Knowledge Graph...")
-    subprocess.run(["python", "knowledge_graph.py"])
+    subprocess.run(["python", "-m", "core.knowledge_graph"])
 
 def show_help():
     """Show usage information"""

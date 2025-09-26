@@ -9,7 +9,13 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.schema import Document
 from langgraph.graph import StateGraph, END
 import chromadb
-from knowledge_graph import AgriKnowledgeGraph
+try:
+    from knowledge_graph import AgriKnowledgeGraph
+except ImportError:
+    import sys
+    import os
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+    from core.knowledge_graph import AgriKnowledgeGraph
 
 # State definition
 class AgentState(TypedDict):
@@ -32,18 +38,43 @@ class WeatherTool:
     
     def run(self, location: str) -> Dict[str, Any]:
         api_key = os.getenv("OPENWEATHER_API_KEY", "your_api_key_here")
-        url = f"http://api.openweathermap.org/data/2.5/weather?q={location}&appid={api_key}&units=metric"
+        
+        # Current weather
+        current_url = f"http://api.openweathermap.org/data/2.5/weather?q={location}&appid={api_key}&units=metric"
+        # 5-day forecast
+        forecast_url = f"http://api.openweathermap.org/data/2.5/forecast?q={location}&appid={api_key}&units=metric"
         
         try:
-            response = requests.get(url, timeout=10)
-            if response.status_code == 200:
-                data = response.json()
-                return {
-                    "temperature": data["main"]["temp"],
-                    "humidity": data["main"]["humidity"],
-                    "description": data["weather"][0]["description"],
-                    "location": location
-                }
+            # Get current weather
+            current_response = requests.get(current_url, timeout=10)
+            forecast_response = requests.get(forecast_url, timeout=10)
+            
+            result = {"location": location}
+            
+            if current_response.status_code == 200:
+                current_data = current_response.json()
+                result.update({
+                    "temperature": current_data["main"]["temp"],
+                    "humidity": current_data["main"]["humidity"],
+                    "description": current_data["weather"][0]["description"],
+                    "wind_speed": current_data["wind"]["speed"],
+                    "pressure": current_data["main"]["pressure"]
+                })
+            
+            if forecast_response.status_code == 200:
+                forecast_data = forecast_response.json()
+                # Get next 3 days forecast
+                forecasts = []
+                for i in range(0, min(24, len(forecast_data["list"])), 8):  # Every 24 hours
+                    item = forecast_data["list"][i]
+                    forecasts.append({
+                        "date": item["dt_txt"][:10],
+                        "temp": item["main"]["temp"],
+                        "description": item["weather"][0]["description"]
+                    })
+                result["forecast"] = forecasts[:3]
+            
+            return result
         except:
             pass
         return {"error": "Weather data unavailable"}
@@ -81,15 +112,13 @@ Focus only on: Beans, Cassava, Finger Millet, Maize, Sorghum, Sweet Potatoes."""
     
     response = llm.invoke(prompt)
     
-    # Parse response
-    tools_needed = []
-    if "weather" in query.lower() or "temperature" in query.lower() or "rain" in query.lower():
-        tools_needed.append("weather_api")
-    if any(crop in query.lower() for crop in ["bean", "cassava", "millet", "maize", "sorghum", "potato"]):
-        tools_needed.append("knowledge_graph")
+    # Parse response - always use knowledge graph for agricultural queries
+    tools_needed = ["knowledge_graph"]
     
-    if not tools_needed:
-        tools_needed.append("knowledge_graph")
+    # Add weather tool if weather-related
+    weather_keywords = ["weather", "hali ya hewa", "temperature", "joto", "rain", "mvua", "climate", "tabianchi"]
+    if any(keyword in query.lower() for keyword in weather_keywords):
+        tools_needed.append("weather_api")
     
     return {
         **state,
@@ -108,12 +137,23 @@ def executor(state: AgentState) -> AgentState:
     
     # Execute weather tool
     if "weather_api" in tools_needed:
-        # Extract location from query or use default
-        location = "Nairobi"  # Default location
+        # Use user's location from session state or extract from query
+        location = "Nairobi"  # Default fallback
+        
+        # Try to get location from session state (if available)
+        try:
+            import streamlit as st
+            if hasattr(st, 'session_state') and hasattr(st.session_state, 'user_location') and st.session_state.user_location:
+                location = st.session_state.user_location
+        except:
+            pass
+        
+        # Extract location from query if mentioned
         for word in query.split():
-            if word.lower() in ["nairobi", "kampala", "dar", "kigali", "dodoma"]:
+            if word.lower() in ["nairobi", "kampala", "dar", "kigali", "dodoma", "mombasa", "kisumu", "nakuru"]:
                 location = word
                 break
+        
         weather_data = weather_tool.run(location)
     
     # Execute knowledge tool
@@ -141,9 +181,18 @@ def synthesizer(state: AgentState) -> AgentState:
             "step": "end"
         }
     
-    # Check if query is outside our expertise
-    crops = ["beans", "cassava", "finger millet", "maize", "sorghum", "sweet potatoes"]
-    if not any(crop in query.lower() for crop in crops) and not weather_data:
+    # Check if query is related to our crops (more comprehensive matching)
+    crop_keywords = [
+        "beans", "maharage", "bean", "cassava", "mihogo", "finger millet", "ulezi", "millet",
+        "maize", "mahindi", "corn", "sorghum", "mtama", "sweet potatoes", "viazi vitamu", "potato",
+        "pest", "pests", "wadudu", "disease", "magonjwa", "nutrient", "nutrients", "mbolea",
+        "plant", "planting", "kupanda", "farming", "kilimo", "grow", "growing", "kukuza",
+        "harvest", "harvesting", "kuvuna", "cultivation", "kulima"
+    ]
+    
+    is_crop_related = any(keyword in query.lower() for keyword in crop_keywords) or knowledge_data or weather_data
+    
+    if not is_crop_related:
         return {
             **state,
             "final_response": "Samahani, mimi ni Imarika, mshauri wa kilimo. Ninajua tu kuhusu mahindi, maharage, mihogo, ulezi, mtama, na viazi vitamu. Je, una swali kuhusu mazao haya?",
@@ -159,7 +208,15 @@ def synthesizer(state: AgentState) -> AgentState:
         context += f"Current Weather in {weather_data.get('location', 'Unknown')}:\n"
         context += f"Temperature: {weather_data.get('temperature', 'N/A')}°C\n"
         context += f"Humidity: {weather_data.get('humidity', 'N/A')}%\n"
-        context += f"Conditions: {weather_data.get('description', 'N/A')}\n\n"
+        context += f"Conditions: {weather_data.get('description', 'N/A')}\n"
+        context += f"Wind Speed: {weather_data.get('wind_speed', 'N/A')} m/s\n"
+        
+        # Add forecast if available
+        if 'forecast' in weather_data:
+            context += "\n3-Day Forecast:\n"
+            for day in weather_data['forecast']:
+                context += f"- {day['date']}: {day['temp']}°C, {day['description']}\n"
+        context += "\n"
     
     prompt = f"""You are Imarika, a friendly agricultural assistant specializing in 6 crops: Beans, Cassava, Finger Millet, Maize, Sorghum, and Sweet Potatoes.
 
