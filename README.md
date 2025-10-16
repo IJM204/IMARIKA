@@ -132,22 +132,25 @@ python run.py build-kg  # Rebuild knowledge graph
 - **Executor**: Runs selected tools and gathers data
 - **Synthesizer**: Combines results into coherent responses
 
-### 📊 Knowledge Graph
-- **22 Nodes**: Crops, nutrients, pests, activities, growth stages
-- **72 Edges**: Relationships like "needs", "attacks", "affects"
+### 📊 Enhanced Knowledge Graph
+- **30+ Nodes**: Crops, nutrients, pests, diseases, activities, growth stages
+- **95+ Edges**: Relationships like "needs", "attacks", "affects"
 - **Graph Queries**: Traversal-based information retrieval
-- **Interactive Viewer**: Built-in graph visualization in chat interface
+- **Interactive Viewer**: Separate navigation pages for visualization and data
 
-### 🌤️ Weather Integration
-- Real-time weather data from OpenWeather API
-- Agricultural advice based on current conditions
-- Location-aware recommendations
+### 🌤️ Location-Based Weather Integration
+- **User Location Input**: Configurable location in sidebar
+- **Real-time Weather**: Current conditions (temperature, humidity, wind, pressure)
+- **3-Day Forecast**: Extended weather predictions for agricultural planning
+- **Location-Aware Advice**: Agricultural recommendations based on local weather
+- **Dynamic Updates**: Change location anytime for updated weather data
 
-### 💬 ChatGPT-Style Interface
-- Clean, modern chat design similar to ChatGPT
-- Typing indicators and smooth interactions
+### 💬 Modern Chat Interface
+- Clean, professional design with sidebar navigation
+- Native Streamlit chat components with typing indicators
 - Built-in recommendations for quick queries
-- Expandable knowledge graph viewer
+- Separate pages for Chat, Graph Visualization, and Graph Data
+- Persistent location and weather display
 
 ### 🌍 Multilingual Support
 - English and Swahili responses
@@ -233,17 +236,17 @@ python -m utils.visualize_knowledge_graph
 - `knowledge_graph_data.json` - Complete graph data for analysis
 
 ### Graph Statistics
-- **Nodes**: 22 (6 crops, 7 nutrients, 5 pests, 4 activities)
-- **Relationships**: 72 connections
-- **Relation Types**: needs, attacks, requires, has_stage
+- **Nodes**: 30+ (6 crops, 7 nutrients, 8+ pests/diseases, 5 activities, 4 stages)
+- **Relationships**: 95+ connections
+- **Relation Types**: needs, attacks, affects, requires, has_stage
 
 ### Node Categories
 ```
 Crops: Beans, Cassava, Finger Millet, Maize, Sorghum, Sweet Potatoes
 Nutrients: Nitrogen, Phosphorus, Potassium, Manure, Compost, DAP, NPK
-Pests: Weevil, Borer, Aphid, Caterpillar, Termite
-Activities: Land preparation, Planting, Weeding, Harvesting
-Stages: Germination, Vegetative, Flowering, Maturity
+Pests & Diseases: Insects, Weevil, Borer, Rodents, Diseases, Rot, Fungal
+Activities: Land preparation, Planting, Nutrient Management, Harvesting
+Stages: Planting, Harvest (growth stages extracted from data)
 ```
 
 ## 🧪 Testing
@@ -277,11 +280,12 @@ python run.py chat
 
 ## 📈 Performance
 
-- **Knowledge Graph**: 22 nodes, 72 relationships
+- **Knowledge Graph**: 30+ nodes, 95+ relationships
 - **Response Time**: ~2-5 seconds (depending on Ollama model)
 - **Memory Usage**: ~2GB (with loaded models)
+- **Weather Data**: Real-time + 3-day forecast
 - **Supported Languages**: English, Swahili
-- **Interface**: Responsive ChatGPT-style design
+- **Interface**: Modern Streamlit design with sidebar navigation
 
 ## 🛠️ Troubleshooting
 
@@ -336,4 +340,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-**Built with ❤️ for East African farmers**
+**Built with hineni for East African farmers**

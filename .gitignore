@@ -1,0 +1,102 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.conda/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Database files
+*.db
+*.sqlite3
+chroma_db/
+*.chroma
+
+# Model files and checkpoints
+fine_tuning/models/
+fine_tuning/checkpoints/
+fine_tuning/imarika-llama3/
+fine_tuning/agri_dataset.jsonl
+fine_tuning/evaluation_results.json
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+
+# Generated files
+knowledge_graph_visualization.png
+miro_knowledge_graph_data.json
+miro_flow_diagram.txt
+*.log
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Large data files
+*.csv.backup
+data/processed/
+data/raw/large_files/
+
+# Docker
+.dockerignore
+
+# Git
+*.orig
+imarika/bin
+imarika
