@@ -2,8 +2,14 @@
 
 import argparse
 from dataset_generator import AgriDatasetGenerator
-from qlora_trainer import QLoRATrainer
-from evaluator import AgriEvaluator
+
+try:
+    from qlora_trainer import QLoRATrainer
+    from evaluator import AgriEvaluator
+    TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    print("Transformers not available. Only dataset generation supported.")
+    TRANSFORMERS_AVAILABLE = False
 
 def main():
     parser = argparse.ArgumentParser(description="Fine-tune Llama3 for Agricultural Assistant")

@@ -41,47 +41,38 @@ An intelligent agricultural advisory system powered by LangGraph, Knowledge Grap
 ```
 offline_agri_rag_ollama/
 ├── 🎯 Core System
-│   ├── core/
-│   │   ├── langgraph_imarika.py      # Main LangGraph agent system
-│   │   ├── knowledge_graph.py        # Knowledge graph builder & query
-│   │   └── streamlit_chatgpt_style.py # ChatGPT-style interface
-│   └── run.py                        # Main runner script
+│   ├── core/                        # Main application logic
+│   ├── data/                        # Agricultural datasets
+│   └── run.py                       # Main runner script
 │
-├── 📊 Data & Storage
-│   ├── data/                         # Agricultural CSV datasets
-│   │   ├── beans.csv
-│   │   ├── cassava.csv
-│   │   ├── finger_millet.csv
-│   │   ├── maize.csv
-│   │   ├── sorghum.csv
-│   │   └── sweet_potatoes.csv
-│   └── chroma_db/                   # Vector database (legacy)
+├── 🎨 Professional Frontend
+│   ├── frontend/                    # Top-notch UI/UX system
+│   └── run_frontend.py              # Frontend launcher
 │
-├── 🔧 Configuration & Utils
-│   ├── utils/
-│   │   └── visualize_knowledge_graph.py # Graph visualization
-│   ├── requirements.txt             # Python dependencies
-│   ├── .env.example                 # Environment variables template
-│   ├── .streamlit/config.toml       # Streamlit configuration
-│   ├── docker-compose.yml           # Docker setup
-│   └── Dockerfile                   # Docker image definition
+├── 🧠 Fine-Tuning System
+│   └── fine_tuning/                 # Complete fine-tuning pipeline
 │
-├── 📚 Legacy & Examples
-│   ├── legacy/                      # Original implementations
-│   │   ├── rag_agent+sw.py         # Original RAG system
-│   │   ├── streamlit_app+sw.py     # Original Streamlit app
-│   │   └── streamlit_openwebui_style.py # OpenWebUI-style interface
-│   └── examples/                    # Architecture examples
-│       ├── agentic_architecture.py # LangGraph examples
-│       └── streamlit_langgraph.py  # Alternative interfaces
+├── 📚 Documentation
+│   ├── docs/                        # Technical documentation
+│   ├── README.md                    # This file
+│   ├── SETUP.md                     # Quick setup guide
+│   └── PROJECT_STRUCTURE.md         # Detailed file organization
 │
-└── 📖 Documentation
-    ├── README.md                    # This file
-    ├── SETUP.md                     # Quick setup guide
-    └── docs/                        # Architecture diagrams
-        ├── Flowchart.jpg
-        └── Flowchart1.jpg
+├── 🧪 Testing & Evaluation
+│   ├── tests/                       # Unit and integration tests
+│   └── evaluation/                  # Performance metrics and reports
+│
+├── 🔧 Configuration
+│   ├── utils/                       # Utility scripts
+│   ├── requirements.txt             # Dependencies
+│   └── .streamlit/                  # Streamlit configuration
+│
+└── 📚 Legacy & Examples
+    ├── legacy/                      # Original implementations
+    └── examples/                    # Architecture examples
 ```
+
+See [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) for detailed file organization.
 
 ## 🚀 Quick Start
 
@@ -91,6 +82,7 @@ offline_agri_rag_ollama/
   - `llama3` (4.7GB)
   - `mxbai-embed-large` (669MB)
 - OpenWeather API key (optional)
+- **For Fine-Tuning**: GPU with 8GB+ VRAM (RTX 3070/4060 Ti or better)
 
 ### Installation
 
@@ -115,14 +107,61 @@ cp .env.example .env
 
 4. **Run the System**
 ```bash
-# Quick start - ChatGPT-style interface
-python run.py
+# Professional Frontend (Recommended for showcase)
+python run_frontend.py
 
-# Or specific modes
-python run.py chat      # Start chat interface
+# Or legacy interface
+python run.py chat      # Basic chat interface
+
+# Other modes
 python run.py test      # Run system tests
 python run.py build-kg  # Rebuild knowledge graph
 ```
+
+### 🧠 Fine-Tuning Llama3 (Optional)
+
+Transform Llama3 into a specialized agricultural expert:
+
+```bash
+# Install fine-tuning dependencies
+cd fine_tuning
+pip install -r requirements.txt
+
+# Generate agricultural dataset (2000 samples)
+python train.py --stage generate --samples 2000
+
+# Fine-tune with QLoRA (2-4 hours with GPU)
+python train.py --stage train
+
+# Evaluate performance improvement
+python train.py --stage evaluate
+
+# Run all stages
+python train.py --stage all
+```
+
+**Hardware Requirements:**
+- **Minimum**: 8GB GPU VRAM
+- **Recommended**: 12GB+ GPU VRAM
+- **Training Time**: 2-4 hours
+
+**Performance Improvements:**
+- **+107.9% overall performance** improvement
+- **+400% more complete** responses
+- **+201% more agricultural** terminology
+- **+60% more accurate** information
+- Maintains existing LangGraph architecture
+
+**Evaluation Metrics:**
+```bash
+# Run performance comparison
+python metrics_comparison.py
+
+# View detailed analysis
+python show_improvements.py
+```
+
+See [FINE_TUNING_DOCUMENTATION.md](FINE_TUNING_DOCUMENTATION.md) for detailed performance metrics and evaluation results.
 
 ## 🎯 Key Features
 
@@ -263,6 +302,22 @@ python run.py test
 # Output: Runs test queries through the full pipeline
 ```
 
+### Test Fine-Tuned Model
+```bash
+cd fine_tuning
+python evaluator.py
+# Output: Compares base vs fine-tuned model accuracy
+```
+
+### Performance Evaluation
+```bash
+python evaluation/metrics/metrics_comparison.py
+# Output: Comprehensive performance metrics comparison
+
+python evaluation/reports/show_improvements.py
+# Output: Dataset analysis and system improvements
+```
+
 ### Interactive Testing
 ```bash
 python run.py chat
@@ -317,6 +372,18 @@ python run.py
 5. **Weather API Errors**
 - Check API key in environment variables
 - System works without weather data if API unavailable
+
+6. **Fine-Tuning Issues**
+```bash
+# Check GPU availability
+python -c "import torch; print(torch.cuda.is_available())"
+
+# Reduce batch size if out of memory
+# Edit qlora_trainer.py: per_device_train_batch_size=2
+
+# Use CPU fallback (slower)
+# System automatically falls back to Ollama if fine-tuned model unavailable
+```
 
 ## 🤝 Contributing
 

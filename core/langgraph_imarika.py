@@ -168,10 +168,47 @@ def executor(state: AgentState) -> AgentState:
     }
 
 def synthesizer(state: AgentState) -> AgentState:
-    """Combines tool results and generates response"""
+    """Combines tool results and generates response using enhanced context"""
     query = state["query"]
     weather_data = state.get("weather_data", {})
     knowledge_data = state.get("knowledge_data", [])
+    
+    # Try to use enhanced synthesizer with fine-tuned context
+    try:
+        import sys
+        import os
+        fine_tuning_path = os.path.join(os.path.dirname(__file__), '..', 'fine_tuning')
+        sys.path.append(fine_tuning_path)
+        from ollama_integration import OllamaFineTuned
+        
+        enhanced_model = OllamaFineTuned()
+        
+        # Prepare context
+        context_parts = []
+        if knowledge_data:
+            context_parts.append(f"Agricultural Knowledge: {'; '.join(knowledge_data[:3])}")
+        if weather_data and "error" not in weather_data:
+            weather_info = f"Weather in {weather_data.get('location', 'Unknown')}: {weather_data.get('temperature', 'N/A')}°C, {weather_data.get('description', 'N/A')}"
+            context_parts.append(weather_info)
+        
+        context = " | ".join(context_parts)
+        
+        # Use enhanced model for agricultural queries
+        response = enhanced_model.generate_response(query, context)
+        
+        # Add greeting for capability queries
+        if any(word in query.lower() for word in ['what can you do', 'capabilities', 'help', 'about']):
+            response = "🌾 Habari! Mimi ni Imarika (Enhanced), mshauri wako wa kilimo.\n\n" + response
+        
+        return {
+            **state,
+            "final_response": response,
+            "step": "end"
+        }
+        
+    except Exception as e:
+        print(f"Enhanced model unavailable, using fallback: {e}")
+        # Continue with original logic below
     
     # Handle general questions about capabilities
     if any(phrase in query.lower() for phrase in ["what can you do", "what do you do", "who are you", "help", "capabilities"]):
@@ -227,7 +264,21 @@ User Question: {query}
 
 Provide a helpful response in English or Swahili as appropriate. Be practical and specific. If weather data is available, include relevant agricultural advice based on current conditions."""
     
-    response = llm.invoke(prompt)
+    try:
+        response = llm.invoke(prompt)
+    except Exception as e:
+        # Fallback to subprocess ollama
+        import subprocess
+        try:
+            result = subprocess.run(
+                ["ollama", "run", "llama3", prompt],
+                capture_output=True,
+                text=True,
+                timeout=15
+            )
+            response = result.stdout.strip()
+        except Exception as e2:
+            response = f"Technical error occurred: {str(e2)}"
     
     return {
         **state,

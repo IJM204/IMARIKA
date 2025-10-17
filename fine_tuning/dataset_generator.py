@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import List, Dict
 
 class AgriDatasetGenerator:
-    def __init__(self, data_dir: str = "data"):
+    def __init__(self, data_dir: str = "../data"):
         self.data_dir = Path(data_dir)
         self.crops = ["beans", "cassava", "finger_millet", "maize", "sorghum", "sweet_potatoes"]
         
@@ -65,7 +65,7 @@ class AgriDatasetGenerator:
         return instructions
     
     def save_dataset(self, instructions: List[Dict], filename: str = "agri_dataset.jsonl"):
-        output_path = Path("fine_tuning") / filename
+        output_path = Path(filename)
         
         with open(output_path, 'w') as f:
             for item in instructions:

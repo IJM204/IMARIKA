@@ -100,3 +100,11 @@ data/raw/large_files/
 *.orig
 imarika/bin
 imarika
+
+# Frontend build files
+frontend/react-app/node_modules/
+frontend/react-app/build/
+frontend/react-app/.env
+frontend/react-app/npm-debug.log*
+frontend/react-app/yarn-debug.log*
+frontend/react-app/yarn-error.log*
