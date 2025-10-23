@@ -1,0 +1,74 @@
+{
+  "base_model": [
+    {
+      "response": "Maize (corn) is a nutrient-demanding crop! It requires:\n\n1. Nitrogen (N): essential for leaf growth and development\n2. Phosphorus (P): crucial for root development, flower formation, and seed set\n3. Potassium (K): helps with overall plant health, resistance to disease, and water balance\n\nThese three macronutrients are essential for maize growth and productivity!",
+      "time": 13.897173166275024,
+      "success": true,
+      "keyword_score": 0.6
+    },
+    {
+      "response": "Timeout",
+      "time": 20,
+      "success": false,
+      "keyword_score": 0.0
+    },
+    {
+      "response": "Cassava prefers a tropical climate with mild temperatures and adequate moisture. Good weather for cassava cultivation includes:\n\n* Average temperatures between 20-30\u00b0C (68-86\u00b0F)\n* Annual rainfall of at least 1,500 mm (60 inches), with a dry season of no more than 3 months\n* High humidity, ideally above 60%\n\nThis allows the crop to thrive and produce high yields.",
+      "time": 13.984026670455933,
+      "success": true,
+      "keyword_score": 0.6
+    },
+    {
+      "response": "In most regions, it's best to plant sorghum in late spring to early summer, when the soil has warmed up to at least 65\u00b0F (18\u00b0C). In areas with a shorter growing season, you may want to start even earlier. For example, in zones 6 and below, consider planting around May 15th to June 1st. Always check the specific planting time for your region and consult with local experts or extension services for more tailored advice!",
+      "time": 16.763762950897217,
+      "success": true,
+      "keyword_score": 0.4
+    },
+    {
+      "response": "To harvest sweet potatoes, follow these steps:\n\n1. Check for maturity: Gently dig around the plants with your hands or a fork to check if the tubers are mature.\n2. Carefully dig: Use a fork to carefully dig around the plant, being careful not to damage the tubers.\n3. Lift gently: Once you've exposed the tuber, lift it out of the soil by hand or with a garden scoop.\n4. Handle with care: Sweet potatoes can be damaged easily, so handle them gently to avoid bruising or cutting.\n\nThat's it!",
+      "time": 18.732784271240234,
+      "success": true,
+      "keyword_score": 0.6
+    }
+  ],
+  "enhanced_model": [
+    {
+      "response": "Error generating response: Command '['ollama', 'run', 'llama3', \"You are Imarika, an agricultural expert for East African crops: beans, cassava, finger millet, maize, sorghum, and sweet potatoes.\\n\\nHere are some example responses to learn from:\\n\\nExample 1:\\nUser: What crops are suitable for humid conditions?\\nImarika: For humid conditions, I recommend beans because it's drought-resistant and suitable for East African climate.\\n\\nExample 2:\\nUser: What nutrients does beans need?\\nImarika: beans needs nitrogen, phosphorus, and potassium for optimal growth.\\n\\nExample 3:\\nUser: What nutrients does beans need?\\nImarika: beans needs nitrogen, phosphorus, and potassium for optimal growth.\\n\\nNow respond to this query in the same style:\\nContext: \\nUser: What nutrients does maize need?\\nImarika:\"]' timed out after 15 seconds",
+      "time": 15.009268283843994,
+      "success": true,
+      "keyword_score": 0.6
+    },
+    {
+      "response": "Error generating response: Command '['ollama', 'run', 'llama3', \"You are Imarika, an agricultural expert for East African crops: beans, cassava, finger millet, maize, sorghum, and sweet potatoes.\\n\\nHere are some example responses to learn from:\\n\\nExample 1:\\nUser: What crops are suitable for humid conditions?\\nImarika: For humid conditions, I recommend beans because it's drought-resistant and suitable for East African climate.\\n\\nExample 2:\\nUser: What nutrients does beans need?\\nImarika: beans needs nitrogen, phosphorus, and potassium for optimal growth.\\n\\nExample 3:\\nUser: What nutrients does beans need?\\nImarika: beans needs nitrogen, phosphorus, and potassium for optimal growth.\\n\\nNow respond to this query in the same style:\\nContext: \\nUser: How do I manage pests in beans?\\nImarika:\"]' timed out after 15 seconds",
+      "time": 15.008394002914429,
+      "success": true,
+      "keyword_score": 0.0
+    },
+    {
+      "response": "Error generating response: Command '['ollama', 'run', 'llama3', \"You are Imarika, an agricultural expert for East African crops: beans, cassava, finger millet, maize, sorghum, and sweet potatoes.\\n\\nHere are some example responses to learn from:\\n\\nExample 1:\\nUser: What crops are suitable for humid conditions?\\nImarika: For humid conditions, I recommend beans because it's drought-resistant and suitable for East African climate.\\n\\nExample 2:\\nUser: What nutrients does beans need?\\nImarika: beans needs nitrogen, phosphorus, and potassium for optimal growth.\\n\\nExample 3:\\nUser: What nutrients does beans need?\\nImarika: beans needs nitrogen, phosphorus, and potassium for optimal growth.\\n\\nNow respond to this query in the same style:\\nContext: \\nUser: What weather is good for cassava?\\nImarika:\"]' timed out after 15 seconds",
+      "time": 15.005399227142334,
+      "success": true,
+      "keyword_score": 0.4
+    },
+    {
+      "response": "Error generating response: Command '['ollama', 'run', 'llama3', \"You are Imarika, an agricultural expert for East African crops: beans, cassava, finger millet, maize, sorghum, and sweet potatoes.\\n\\nHere are some example responses to learn from:\\n\\nExample 1:\\nUser: What crops are suitable for humid conditions?\\nImarika: For humid conditions, I recommend beans because it's drought-resistant and suitable for East African climate.\\n\\nExample 2:\\nUser: What nutrients does beans need?\\nImarika: beans needs nitrogen, phosphorus, and potassium for optimal growth.\\n\\nExample 3:\\nUser: What nutrients does beans need?\\nImarika: beans needs nitrogen, phosphorus, and potassium for optimal growth.\\n\\nNow respond to this query in the same style:\\nContext: \\nUser: When should I plant sorghum?\\nImarika:\"]' timed out after 15 seconds",
+      "time": 15.00839638710022,
+      "success": true,
+      "keyword_score": 0.0
+    },
+    {
+      "response": "Error generating response: Command '['ollama', 'run', 'llama3', \"You are Imarika, an agricultural expert for East African crops: beans, cassava, finger millet, maize, sorghum, and sweet potatoes.\\n\\nHere are some example responses to learn from:\\n\\nExample 1:\\nUser: What crops are suitable for humid conditions?\\nImarika: For humid conditions, I recommend beans because it's drought-resistant and suitable for East African climate.\\n\\nExample 2:\\nUser: What nutrients does beans need?\\nImarika: beans needs nitrogen, phosphorus, and potassium for optimal growth.\\n\\nExample 3:\\nUser: What nutrients does beans need?\\nImarika: beans needs nitrogen, phosphorus, and potassium for optimal growth.\\n\\nNow respond to this query in the same style:\\nContext: \\nUser: How to harvest sweet potatoes?\\nImarika:\"]' timed out after 15 seconds",
+      "time": 15.008957147598267,
+      "success": true,
+      "keyword_score": 0.2
+    }
+  ],
+  "summary": {
+    "base_avg_score": 0.44000000000000006,
+    "enhanced_avg_score": 0.24,
+    "score_improvement": -0.20000000000000007,
+    "base_avg_time": 15.844436764717102,
+    "enhanced_avg_time": 15.008083009719849,
+    "time_difference": -0.8363537549972531
+  }
+}

@@ -196,9 +196,9 @@ def synthesizer(state: AgentState) -> AgentState:
         # Use enhanced model for agricultural queries
         response = enhanced_model.generate_response(query, context)
         
-        # Add greeting for capability queries
+        # Add greeting for capability queries without redundant name
         if any(word in query.lower() for word in ['what can you do', 'capabilities', 'help', 'about']):
-            response = "🌾 Habari! Mimi ni Imarika (Enhanced), mshauri wako wa kilimo.\n\n" + response
+            response = "🌾 Habari! " + response
         
         return {
             **state,
@@ -214,7 +214,7 @@ def synthesizer(state: AgentState) -> AgentState:
     if any(phrase in query.lower() for phrase in ["what can you do", "what do you do", "who are you", "help", "capabilities"]):
         return {
             **state,
-            "final_response": "🌾 Habari! Mimi ni Imarika, mshauri wako wa kilimo.\n\nNinaweza kukusaidia na:\n\n• 🌱 Mazao 6: Mahindi, Maharage, Mihogo, Ulezi, Mtama, Viazi vitamu\n• 🌤️ Hali ya hewa: Ushauri kulingana na mazingira ya sasa\n• 📊 Uhusiano wa mazao: Mbolea, wadudu, magonjwa\n• 🔄 Mipango ya kilimo: Kupanda, kulima, kuvuna\n• 💡 Ushauri wa kisasa: Kutumia teknolojia ya Knowledge Graph\n\nMfano wa maswali:\n- Mahindi yanahitaji mbolea gani?\n- Hali ya hewa inaathirije mihogo?\n- Wadudu gani wanashambulia maharage?\n- Ni wakati gani bora wa kupanda mtama?\n\nUliza swali lolote kuhusu mazao haya! 🚀",
+            "final_response": "🌾 Habari! Ninaweza kukusaidia na:\n\n• 🌱 Mazao 6: Mahindi, Maharage, Mihogo, Ulezi, Mtama, Viazi vitamu\n• 🌤️ Hali ya hewa: Ushauri kulingana na mazingira ya sasa\n• 📊 Uhusiano wa mazao: Mbolea, wadudu, magonjwa\n• 🔄 Mipango ya kilimo: Kupanda, kulima, kuvuna\n• 💡 Ushauri wa kisasa: Kutumia teknolojia ya Knowledge Graph\n\nMfano wa maswali:\n- Mahindi yanahitaji mbolea gani?\n- Hali ya hewa inaathirije mihogo?\n- Wadudu gani wanashambulia maharage?\n- Ni wakati gani bora wa kupanda mtama?\n\nUliza swali lolote kuhusu mazao haya! 🚀",
             "step": "end"
         }
     
@@ -255,14 +255,14 @@ def synthesizer(state: AgentState) -> AgentState:
                 context += f"- {day['date']}: {day['temp']}°C, {day['description']}\n"
         context += "\n"
     
-    prompt = f"""You are Imarika, a friendly agricultural assistant specializing in 6 crops: Beans, Cassava, Finger Millet, Maize, Sorghum, and Sweet Potatoes.
+    prompt = f"""You are an agricultural assistant specializing in 6 crops: Beans, Cassava, Finger Millet, Maize, Sorghum, and Sweet Potatoes.
 
 Context:
 {context}
 
 User Question: {query}
 
-Provide a helpful response in English or Swahili as appropriate. Be practical and specific. If weather data is available, include relevant agricultural advice based on current conditions."""
+Provide a helpful response in English or Swahili as appropriate. Be practical and specific. If weather data is available, include relevant agricultural advice based on current conditions. Do not mention your name in responses."""
     
     try:
         response = llm.invoke(prompt)
