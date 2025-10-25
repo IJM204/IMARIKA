@@ -48,6 +48,8 @@ class PerformanceComparator:
                 
         except subprocess.TimeoutExpired:
             return {"response": "Timeout", "time": 20, "success": False}
+        except Exception as e:
+            return {"response": f"Error: {e}", "time": 0, "success": False}
     
     def test_enhanced_model(self, query: str) -> dict:
         """Test enhanced model with fine-tuned context"""

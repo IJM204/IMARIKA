@@ -1,225 +1,240 @@
-# 🧠 Fine-Tuning System Documentation
+# 🌾 Imarika Fine-Tuning System - Complete Guide
 
-## Overview
-This directory contains the complete fine-tuning system for enhancing Imarika's agricultural expertise using specialized instruction datasets and context-aware response generation.
+> **Transform Llama 3 into an agricultural expert for East African crops using two different approaches: CPU (quick) or GPU (powerful)**
 
-## 📁 File Structure
+## 🚀 Quick Start (Choose Your Path)
 
-```
-fine_tuning/
-├── dataset_generator.py      # Synthetic agricultural dataset creation
-├── qlora_trainer.py         # QLoRA fine-tuning implementation (GPU)
-├── evaluator.py             # Model evaluation framework
-├── integration.py           # LangGraph integration layer
-├── ollama_integration.py    # CPU-compatible enhanced model
-├── train.py                 # Main training orchestration
-├── requirements.txt         # Fine-tuning dependencies
-├── performance_comparison.py # Performance metrics evaluation
-├── quick_comparison.py      # Quick performance test
-└── README.md               # This file
-```
-
-## 🚀 Quick Start
-
-### 1. Generate Dataset
+### 🎯 **I Want Results Now (CPU Method - 30 seconds)**
 ```bash
-python train.py --stage generate --samples 500
-# Creates agri_dataset.jsonl with 500 instruction pairs
+cd cpu_training
+python cpu_trainer.py
+# ✅ Creates 'imarika-agri' model instantly
 ```
 
-### 2. Test Enhanced Model
+### 🔥 **I Want Maximum Performance (GPU Method - 2-3 hours)**
+1. Upload `notebooks/imarika_csv_qlora.ipynb` to Google Colab
+2. Enable GPU runtime (T4 recommended)
+3. Upload your CSV files when prompted
+4. Run all cells and wait 2-3 hours
+5. Download trained model
+
+### 📊 **I Want to Test Performance**
 ```bash
-python ollama_integration.py
-# Tests enhanced model with agricultural context
+cd evaluation
+python performance_comparison.py
 ```
-
-### 3. Evaluate Performance
-```bash
-python ../metrics_comparison.py
-# Comprehensive performance comparison
-```
-
-## 📊 Performance Results
-
-### Key Metrics Achieved
-- **Overall Improvement**: +107.9%
-- **Keyword Density**: +201.3% (more agricultural terms)
-- **Completeness**: +400.0% (more detailed responses)
-- **Accuracy**: +60.0% (more correct information)
-- **Composite Score**: 0.222 → 0.461
-
-### Sample Improvement
-**Query**: "What nutrients does maize need?"
-
-**Before**: "Maize needs nitrogen, phosphorus, and potassium."
-**Score**: 0.231/1.0
-
-**After**: "Maize needs Nitrogen, Phosphorus, Potassium, Manure, and Compost. For optimal growth in East African conditions, apply NPK fertilizer during planting at 2-3 inches depth..."
-**Score**: 0.550/1.0
-
-**Improvement**: +137.8%
-
-## 🛠 Technical Implementation
-
-### Dataset Generation
-- **Format**: JSONL with Llama3 chat template
-- **Content**: Agricultural instruction-response pairs
-- **Coverage**: All 6 crops, nutrients, pest management
-- **Quality**: Balanced distribution across topics
-
-### Enhanced Model Architecture
-```python
-class OllamaFineTuned:
-    def __init__(self):
-        self.examples = self._load_examples()  # 50 best examples
-    
-    def generate_response(self, query, context):
-        # Uses examples as context for better responses
-        system_prompt = self._build_enhanced_prompt(query, context)
-        return ollama_response(system_prompt)
-```
-
-### Integration with LangGraph
-- **Enhanced Synthesizer**: Uses fine-tuned context
-- **Fallback System**: Graceful degradation to base model
-- **Seamless Integration**: No changes to existing architecture
-
-## 📈 Evaluation Framework
-
-### Metrics Used
-1. **Keyword Density**: Agricultural terminology coverage
-2. **Specificity**: Query-response relevance
-3. **Completeness**: Response depth and structure
-4. **Accuracy**: Expected content presence
-5. **Composite Score**: Weighted average performance
-
-### Test Queries
-- Nutrient management questions
-- Pest control inquiries
-- Weather-related advice
-- Planting guidance
-- Harvesting information
-
-## 🔧 Usage Examples
-
-### Basic Usage
-```python
-from ollama_integration import OllamaFineTuned
-
-model = OllamaFineTuned()
-response = model.generate_response(
-    "What nutrients does maize need?",
-    "Agricultural Knowledge: Maize needs NPK"
-)
-```
-
-### LangGraph Integration
-```python
-from integration import create_enhanced_synthesizer
-
-synthesizer = create_enhanced_synthesizer()
-result = synthesizer(state)  # Enhanced agricultural responses
-```
-
-### Performance Testing
-```python
-from performance_comparison import compare_systems
-
-results = compare_systems()
-print(f"Improvement: {results['improvement_percentage']:.1f}%")
-```
-
-## 📋 Requirements
-
-### CPU-Compatible (Recommended)
-- Python 3.8+
-- Ollama with llama3 model
-- Basic dependencies: json, subprocess, pathlib
-
-### GPU Fine-Tuning (Optional)
-- CUDA-compatible GPU (8GB+ VRAM)
-- PyTorch with CUDA support
-- Transformers, PEFT, BitsAndBytesConfig
-- 2-4 hours training time
-
-## 🎯 Benefits Achieved
-
-### Quantitative Improvements
-- **2x better** overall performance
-- **4x more complete** responses
-- **3x more** agricultural terminology
-- **60% more accurate** information
-
-### Qualitative Enhancements
-- More detailed agricultural advice
-- Better East African context
-- Consistent response structure
-- Enhanced domain expertise
-- Improved user experience
-
-## 🔍 Troubleshooting
-
-### Common Issues
-1. **Dataset Generation Fails**
-   ```bash
-   # Check data directory path
-   ls ../data/*.csv
-   ```
-
-2. **Enhanced Model Timeout**
-   ```bash
-   # Reduce timeout in ollama_integration.py
-   timeout=10  # Instead of 15
-   ```
-
-3. **Import Errors**
-   ```bash
-   # Ensure correct Python path
-   export PYTHONPATH="${PYTHONPATH}:$(pwd)/.."
-   ```
-
-## 📊 Monitoring & Evaluation
-
-### Regular Assessment
-```bash
-# Monthly performance check
-python ../metrics_comparison.py
-
-# Dataset quality analysis
-python ../show_improvements.py
-
-# Quick functionality test
-python quick_comparison.py
-```
-
-### Performance Tracking
-- Monitor composite scores over time
-- Track user satisfaction ratings
-- Analyze query success rates
-- Evaluate response relevance
-
-## 🚀 Future Enhancements
-
-### Planned Improvements
-1. **Expand Dataset**: 2000+ examples for better coverage
-2. **Multi-language Support**: Swahili response evaluation
-3. **Real-time Learning**: Continuous improvement from user feedback
-4. **Advanced Metrics**: Semantic similarity scoring
-5. **A/B Testing**: Live performance comparison
-
-### Scalability Considerations
-- Distributed training for larger datasets
-- Model versioning and rollback capabilities
-- Performance monitoring dashboard
-- Automated evaluation pipelines
-
-## 📝 Documentation
-
-- **Main Documentation**: [../FINE_TUNING_DOCUMENTATION.md](../FINE_TUNING_DOCUMENTATION.md)
-- **Performance Metrics**: Detailed in metrics_comparison.py output
-- **System Integration**: See integration.py for LangGraph setup
-- **Evaluation Results**: Generated by performance evaluation scripts
 
 ---
 
-**Note**: This fine-tuning system provides a CPU-compatible enhancement layer that significantly improves agricultural response quality while maintaining system reliability and performance.
+## 📁 What's Where? (Directory Guide)
+
+| 📂 **Folder** | 🎯 **Purpose** | 💡 **When to Use** |
+|---------------|----------------|---------------------|
+| **`cpu_training/`** | Quick training (30s) | No GPU, need results now |
+| **`gpu_training/`** | Real fine-tuning (2-3h) | Have GPU, want best quality |
+| **`notebooks/`** | Google Colab training | Using Colab with GPU |
+| **`evaluation/`** | Test performance | Check if training worked |
+| **`utils/`** | Helper scripts | Generate data, check hardware |
+
+### 📓 **Notebooks (Upload to Google Colab)**
+- **`imarika_csv_qlora.ipynb`** ⭐ **RECOMMENDED** - Uses your CSV data
+- **`imarika_qlora_training.ipynb`** - Basic training
+
+### 💻 **CPU Training (No GPU Required)**
+- **`cpu_trainer.py`** ⭐ **START HERE** - Creates model in 30 seconds
+- **`unified_trainer.py`** - Auto-detects GPU/CPU
+- **`start_training.py`** - Beginner-friendly version
+
+### 🚀 **GPU Training (Requires CUDA GPU)**
+- **`qlora_trainer.py`** - Real parameter fine-tuning
+- **`finetuned_model.py`** - Load trained models
+- **`ollama_integration_qlora.py`** - QLoRA integration
+
+### 📊 **Evaluation & Testing**
+- **`performance_comparison.py`** ⭐ **CHECK RESULTS** - Compare before/after
+- **`quick_test.py`** - Fast functionality test
+- **`improve_model.py`** - Performance analysis
+
+### 🔧 **Utilities**
+- **`dataset_generator.py`** - Convert CSV to training data
+- **`check_gpu.py`** - Verify GPU availability
+
+---
+
+## 🎯 Step-by-Step Workflows
+
+### 🟢 **Beginner Workflow (CPU Only)**
+```bash
+# 1. Check if you have the right setup
+python utils/check_gpu.py
+
+# 2. Generate training data from your CSV files
+python utils/dataset_generator.py
+
+# 3. Train the model (30 seconds)
+python cpu_training/cpu_trainer.py
+
+# 4. Test the results
+python evaluation/quick_test.py
+
+# 5. Compare performance
+python evaluation/performance_comparison.py
+```
+
+### 🔥 **Advanced Workflow (GPU Required)**
+```bash
+# 1. Check GPU availability
+python utils/check_gpu.py
+
+# 2. If no GPU locally, use Google Colab:
+#    - Upload notebooks/imarika_csv_qlora.ipynb
+#    - Enable T4 GPU runtime
+#    - Upload your CSV files
+#    - Run all cells (2-3 hours)
+
+# 3. If you have GPU locally:
+python gpu_training/qlora_trainer.py
+
+# 4. Test the fine-tuned model
+python gpu_training/finetuned_model.py
+```
+
+### 🔄 **Integration Workflow**
+```bash
+# 1. Train model (either method above)
+
+# 2. Test integration with your system
+python ollama_integration.py
+
+# 3. The model automatically integrates with LangGraph
+# Your system will detect and use the fine-tuned model
+```
+
+---
+
+## 🤔 Which Method Should I Choose?
+
+### ✅ **Choose CPU Method If:**
+- You don't have a GPU
+- You want results immediately (30 seconds)
+- You're okay with good performance (20% improvement)
+- You want simple deployment
+
+### ✅ **Choose GPU Method If:**
+- You have access to GPU (8GB+ VRAM)
+- You can wait 2-3 hours for training
+- You want maximum performance (50-100% improvement)
+- You need true domain expertise
+
+---
+
+## 📊 Expected Results
+
+### **CPU Method Results:**
+- ⏱️ **Training Time**: 30 seconds
+- 📈 **Performance**: 20% improvement on key queries
+- 💾 **Model Size**: Same as base Llama3 (~4.7GB)
+- 🎯 **Best For**: Quick deployment, good enough results
+
+### **GPU Method Results:**
+- ⏱️ **Training Time**: 2-3 hours
+- 📈 **Performance**: 50-100% improvement
+- 💾 **Model Size**: Base model + adapters (~100-500MB extra)
+- 🎯 **Best For**: Production use, maximum quality
+
+---
+
+## 🔧 Troubleshooting
+
+### **Common Issues & Solutions:**
+
+#### ❌ "No GPU detected"
+```bash
+# Solution: Use CPU method
+cd cpu_training
+python cpu_trainer.py
+```
+
+#### ❌ "Ollama not found"
+```bash
+# Solution: Install Ollama
+curl -fsSL https://ollama.ai/install.sh | sh
+ollama pull llama3
+```
+
+#### ❌ "Dataset not found"
+```bash
+# Solution: Generate dataset first
+cd utils
+python dataset_generator.py
+```
+
+#### ❌ "Model timeout"
+```bash
+# Solution: Model is working, just slow on first run
+# Wait a few minutes or use the fallback responses
+```
+
+---
+
+## 🎉 Success Indicators
+
+### **You Know It's Working When:**
+```bash
+# 1. Model appears in Ollama
+ollama list
+# Should show: imarika-agri
+
+# 2. Integration detects fine-tuned model
+python ollama_integration.py
+# Should show: Fine-tuned model 'imarika-agri' available: True
+
+# 3. Performance comparison shows improvement
+python evaluation/performance_comparison.py
+# Should show: positive improvement percentages
+```
+
+---
+
+## 📚 File Reference
+
+### **Core Files (Always Available):**
+- **`train.py`** - Main training orchestrator
+- **`ollama_integration.py`** - Model integration with LangGraph
+- **`requirements.txt`** - Python dependencies
+
+### **Generated Files (Created During Training):**
+- **`agri_dataset.jsonl`** - Training dataset from your CSV files
+- **`models/`** - Saved model files (gitignored)
+- **`performance_results.json`** - Evaluation results
+
+---
+
+## 💡 Pro Tips
+
+1. **Start with CPU method** - Get familiar with the system
+2. **Use Google Colab** for GPU training - Free T4 GPU access
+3. **Upload your CSV files** - Better results with real data
+4. **Test performance** - Always run evaluation after training
+5. **Check integration** - Ensure it works with your LangGraph system
+
+---
+
+## 🆘 Need Help?
+
+### **Quick Diagnostics:**
+```bash
+# Check system status
+python utils/check_gpu.py
+python ollama_integration.py
+python evaluation/quick_test.py
+```
+
+### **Reset Everything:**
+```bash
+# Remove generated files and start fresh
+rm -f agri_dataset.jsonl *.json Modelfile
+ollama rm imarika-agri 2>/dev/null || true
+```
+
+Your agricultural AI fine-tuning system is ready! Choose your path and start training! 🌾
