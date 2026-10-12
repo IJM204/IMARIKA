@@ -1,85 +1,95 @@
-# 🚀 Quick Setup Guide
+# 🚀 Guide de démarrage rapide — Imarika / AGRIBurundi-AI
 
-## Prerequisites Checklist
+> Assistant agricole burundais — **Ollama** (moteur local) + **FastAPI** + interface web intégrée.
 
-- [ ] Python 3.8+ installed
-- [ ] Ollama installed and running
-- [ ] Git installed
+## Prérequis
 
-## 1-Minute Setup
+- [ ] Python 3.10+
+- [ ] Ollama installé **et lancé**
+- [ ] Modèle léger téléchargé : `qwen3:1.7b` (1,4 Go — adapté aux machines 8 Go de RAM)
+
+## Installation (1 minute)
 
 ```bash
-# 1. Clone repository
-git clone <your-repo-url>
-cd offline_agri_rag_ollama
-
-# 2. Install dependencies
+# 1. Dépendances Python
 pip install -r requirements.txt
 
-# 3. Install Ollama models (this may take a few minutes)
-ollama pull llama3
-ollama pull mxbai-embed-large
+# 2. Vérifier / lancer Ollama
+ollama serve          # (dans un terminal séparé, si pas déjà lancé)
+ollama pull qwen3:1.7b
 
-# 4. Start the ChatGPT-style interface
+# 3. Démarrer Imarika
 python run.py
 ```
 
-## Verify Installation
+Puis ouvrez : **http://localhost:8000**
+
+## Ce que vous obtenez
+
+| URL | Rôle |
+|---|---|
+| http://localhost:8000 | **Interface web** (connexion + chat) |
+| http://localhost:8000/docs | Documentation interactive de l'API |
+| http://localhost:8000/health | État du backend et d'Ollama |
+
+1. **Créez un compte** (nom d'utilisateur + mot de passe) au premier lancement.
+2. Posez vos questions — en français, kirundi ou kiswahili.
+3. L'historique est **privé** : chaque utilisateur ne voit que ses conversations.
+
+### Exemples de questions
+
+- 🌱 « Quand semer le maïs en Saison A ? »
+- 🧪 « Comment fertiliser le haricot ? »
+- 🐛 « Quels ravageurs attaquent le manioc ? »
+- 👋 « Bonjour », « merci », « aide » → réponses **instantanées** (sans modèle)
+
+## Commandes
 
 ```bash
-# Test knowledge graph
-python run.py build-kg
-
-# Run system tests
-python run.py test
-
-# Start ChatGPT-style chat interface
-python run.py chat
+python run.py           # API + interface web (mode léger, DÉFAUT)
+python run.py legacy    # ancienne interface Streamlit (LOURD — déconseillé)
+python run.py test      # suite de tests pytest
+python run.py build-kg  # reconstruire le graphe de connaissances
+python run.py help      # aide
 ```
 
-## Access Points
+## Optimisation mémoire (important sur 8 Go de RAM)
 
-- **ChatGPT-Style Interface**: http://localhost:8501
-- **Knowledge Graph Viewer**: Built into chat interface
-- **System Status**: Check terminal output
-- **Logs**: Streamlit logs in terminal
+Réglages dans `backend/core/config.py` :
 
-## Troubleshooting
+| Variable | Défaut | Effet |
+|---|---|---|
+| `OLLAMA_MODEL` | `qwen3:1.7b` | Changer de modèle ici (un seul endroit) |
+| `OLLAMA_KEEP_ALIVE` | `"2m"` | Durée du modèle en RAM après réponse |
+| `OLLAMA_NUM_CTX` | `2048` | Fenêtre de contexte (↓ = ↓ RAM) |
+| `OLLAMA_NUM_THREAD` | `4` | Threads CPU |
 
-### Ollama Not Found
+⚠️ **Ne pas utiliser `llama3` (4,7 Go)** sur une machine 8 Go : c'est la cause
+historique du plantage. `qwen3:4b` (~3,5 Go) est également déconseillé ici.
+
+## Tests
+
 ```bash
-# Install Ollama first
-curl -fsSL https://ollama.ai/install.sh | sh
-ollama serve  # Start Ollama service
+pip install pytest
+python -m pytest -m fast     # tests rapides (aucun appel à Ollama, ~30 s)
+python -m pytest             # tous les tests (les tests Ollama prennent plusieurs minutes)
 ```
 
-### Port Already in Use
+## Dépannage
+
+**« Ollama est indisponible »** dans l'interface (badge 🟠) :
 ```bash
-# Use different port
-streamlit run streamlit_openwebui_style.py --server.port 8502
+ollama serve        # démarrer le service
+ollama list         # vérifier que qwen3:1.7b est présent
 ```
 
-### Missing Dependencies
+**Port 8000 déjà utilisé** :
 ```bash
-# Reinstall requirements
-pip install -r requirements.txt --force-reinstall
+# Changer de port dans backend/core/config.py  ->  PORT: int = 8001
 ```
 
-## Optional: Weather API
+**Première réponse lente** : normal sur CPU (~60-90 s). Les salutations
+(« bonjour ») sont répondues instantanément et ne chargent pas le modèle.
 
-1. Get free API key from [OpenWeatherMap](https://openweathermap.org/api)
-2. Copy `.env.example` to `.env`
-3. Add your API key to `.env`
-
-## Success Indicators
-
-✅ Ollama models loaded  
-✅ Knowledge graph built (22 nodes, 72 edges)  
-✅ Streamlit interface accessible  
-✅ Chat responses working  
-
-## Next Steps
-
-- Try example queries in the chat interface
-- Explore the knowledge graph relationships
-- Test weather-based agricultural advice
+**Météo** (optionnel) : clé API OpenWeatherMap dans `.env`
+(voir `.env.example`).

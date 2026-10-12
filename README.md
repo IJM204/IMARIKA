@@ -77,26 +77,26 @@ See [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) for detailed file organization.
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.8+
-- Ollama installed with models:
-  - `llama3` (4.7GB)
-  - `mxbai-embed-large` (669MB)
+- Python 3.10+
+- Ollama installed and running with the **lightweight** model:
+  - `qwen3:1.7b` (1.4 GB — fits 8 GB RAM machines)
 - OpenWeather API key (optional)
-- **For QLoRA Fine-Tuning**: GPU with 8GB+ VRAM (Tesla T4, RTX 3070, or better)
+
+> ⚠️ **Memory note**: on an 8 GB RAM machine, do **not** use `llama3` (4.7 GB)
+> or `qwen3:4b` (~3.5 GB) — they freeze the machine. This was the historical
+> cause of the crashes. See `backend/core/config.py`.
 
 ### Installation
 
-1. **Clone & Setup**
+1. **Install dependencies**
 ```bash
-git clone <repository>
-cd offline_agri_rag_ollama
 pip install -r requirements.txt
 ```
 
-2. **Install Ollama Models**
+2. **Install Ollama model**
 ```bash
-ollama pull llama3
-ollama pull mxbai-embed-large
+ollama serve
+ollama pull qwen3:1.7b
 ```
 
 3. **Environment Setup** (Optional)
@@ -107,17 +107,22 @@ cp .env.example .env
 
 4. **Run the System**
 ```bash
-# Main chat interface with streaming support
-python run.py chat
-# Access at http://localhost:8501
+# FastAPI backend + web interface (light path, DEFAULT)
+python run.py
+# Open http://localhost:8000  ->  create an account, then chat
 
 # Other modes
-python run.py test      # Run system tests
-python run.py build-kg  # Rebuild knowledge graph
-
-# Professional frontend (alternative)
-python run_frontend.py
+python run.py legacy   # old Streamlit UI (heavy, not recommended)
+python run.py test     # run pytest suite
+python run.py build-kg # rebuild knowledge graph
 ```
+
+### Features
+- 🔐 **User accounts** — login/password (PBKDF2), each user sees only their own history
+- ⚡ **Instant greetings** — "bonjour", "merci", "aide"… answered without loading the model
+- 💬 **Streaming chat** — token-by-token rendering
+- 🌾 **Agriculture + general questions** — 6 East African crops, FR/Kirundi/Swahili
+- 🪶 **SQLite storage** — conversations, messages, users, sessions
 
 ## 🧠 QLoRA Fine-Tuning System
 

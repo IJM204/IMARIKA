@@ -1,0 +1,28 @@
+# ============================================
+#  AGRIBurundi-AI / Imarika — DEPENDANCES LEGACY
+#  NECESSAIRES UNIQUEMENT pour l'ancien chemin :
+#      python run.py legacy      (Streamlit)
+#      core/langgraph_imarika.py (LangGraph + ChromaDB)
+#      utils/visualize_knowledge_graph.py
+#
+#  ATTENTION — consommation memoire :
+#     streamlit + chromadb + langgraph + matplotlib
+#     + un modele llama3 (4,7 Go) = depassement de 8 Go de RAM
+#     et plantage probable de la machine.
+#
+#  Installation :  pip install -r requirements-legacy.txt
+#  (installez d'abord requirements.txt)
+# ============================================
+
+langchain
+langchain-community
+langchain-chroma
+langgraph
+langchain-ollama
+streamlit
+chromadb
+networkx
+matplotlib
+pypdf
+unstructured
+jq

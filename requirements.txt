@@ -1,16 +1,29 @@
-langchain
-langchain-community
-langchain-chroma
-langgraph
-unstructured
-pypdf
-streamlit
-jq
-langchain-ollama
-requests
-python-dotenv
+# ============================================
+#  AGRIBurundi-AI / Imarika — DEPENDANCES LEGERES
+#  Chemin principal : FastAPI + interface web + Ollama (HTTP)
+#  Installation :  pip install -r requirements.txt
+# ============================================
+
+# --- API ---
+fastapi
+uvicorn
+pydantic
+pydantic-settings
+httpx
+
+# --- Connaissance agronomique (CSV) ---
 pandas
-chromadb
-networkx
-matplotlib
-networkx
+
+# --- Configuration ---
+python-dotenv
+requests
+
+# --- Tests ---
+pytest
+
+# ============================================
+#  L'ancien chemin (Streamlit, LangGraph, Chroma,
+#  matplotlib...) est dans requirements-legacy.txt
+#  ->  pip install -r requirements-legacy.txt
+#  Seulement si vous lancez :  python run.py legacy
+# ============================================
