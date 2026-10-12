@@ -1,6 +1,8 @@
-﻿"""
+"""
 Service d'orchestration du chat pour Imarika.
-Coordonne: Question -> Base de connaissances -> Prompt -> Ollama -> Reponse
+Coordonne: Question -> Memoire conversation -> Base de connaissances -> Ollama -> Reponse
+Le chat est multi-tours : les derniers echanges sont reinjectes comme memoire
+courte (`recent_messages`), le contexte CSV part dans un bloc systeme dedie.
 """
 
 import sys
@@ -14,7 +16,10 @@ from backend.services.knowledge_service import knowledge_service
 from backend.services.history_service import history_service
 from backend.services import greeting_service
 from backend.core.config import settings
-from ai.prompts.system_prompts import IMARIKA_SYSTEM_PROMPT, build_user_prompt_with_context
+from ai.prompts.system_prompts import IMARIKA_SYSTEM_PROMPT
+
+# Nombre max de messages (user + assistant) reinjectes en memoire courte.
+MEMORY_TURNS = 6
 
 
 class ChatService:
@@ -54,17 +59,22 @@ class ChatService:
         return text if len(text) <= limit else text[:limit].rstrip() + " …"
 
     @staticmethod
-    def _build_user_prompt(message: str, context_chunks: List[str], regional_info: str) -> str:
-        """
-        Construit le prompt utilisateur COURT : l'evaluation du prompt (prefill)
-        represente les 2/3 du temps de reponse sur CPU, donc chaque token compte.
-        """
-        slim_chunks = [ChatService._slim_chunk(c) for c in context_chunks[:2]]
-        regional = (regional_info or "")[:350]
-        return build_user_prompt_with_context(
-            query=message,
-            context_chunks=slim_chunks,
-            region_info=regional,
+    def _context_block(context_chunks: List[str], regional_info: str) -> str:
+        """Bloc systeme dedie au contexte agronomique ('' si aucun)."""
+        parts = [
+            ChatService._slim_chunk(c)
+            for c in (context_chunks or [])[:2]
+        ]
+        parts = [p for p in parts if p]
+        if regional_info:
+            parts.append("--- CONTEXTE REGIONAL BURUNDI ---\n" + regional_info[:350])
+        if not parts:
+            return ""
+        return (
+            "\n\n--- DONNEES TECHNIQUES ET AGRONOMIQUES DISPONIBLES ---\n"
+            + "\n\n".join(parts)
+            + "\n--- FIN DES DONNEES. Utilise-les si pertinentes ; "
+              "reponds normalement si la question est hors agriculture. ---"
         )
 
     @staticmethod
@@ -89,7 +99,7 @@ class ChatService:
         user_id: Optional[str] = None,
     ) -> dict:
         """
-        Traitement non-streaming (retourne la reponse complete).
+        Traitement non-streaming (retourne la reponse complete), multi-tours.
         Retourne un dict avec response, conversation_id et context_used.
         """
 
@@ -119,17 +129,19 @@ class ChatService:
         # 2. Sauvegarder le message utilisateur
         history_service.add_message(conv_id, "user", message)
 
-        # 3. Extraire le contexte agricole pertinent
+        # 3. Memoire courte : derniers echanges SAUVEGARDES de cette
+        #    conversation (le message courant est le dernier element).
+        history = history_service.recent_messages(conv_id, limit=MEMORY_TURNS)
+
+        # 4. Contexte agricole -> bloc systeme dedie
         context_chunks, regional_info = self._retrieve(message)
 
-        # 4. Construire le prompt utilisateur avec contexte
-        user_prompt = self._build_user_prompt(message, context_chunks, regional_info)
-
-        # 5. Appeler Ollama via API HTTP
+        # 5. Appeler Ollama en multi-tours
         try:
-            response_text = await ollama_service.generate(
-                prompt=user_prompt,
-                system=IMARIKA_SYSTEM_PROMPT,
+            response_text = await ollama_service.chat(
+                history=history,
+                system=IMARIKA_SYSTEM_PROMPT
+                + self._context_block(context_chunks, regional_info),
                 temperature=0.3,
                 num_predict=settings.CHAT_MAX_TOKENS,
             )
@@ -158,7 +170,7 @@ class ChatService:
         user_id: Optional[str] = None,
     ) -> AsyncIterator[str]:
         """
-        Traitement streaming: yielde les tokens au fur et a mesure.
+        Traitement streaming: yielde les tokens au fur et a mesure, multi-tours.
         Sauvegarde la reponse complete en SQLite a la fin.
         """
         # 0. Salutations / politesses : reponse immediate, sans Ollama.
@@ -177,7 +189,7 @@ class ChatService:
             yield f'data: {{"event":"done","conversation_id":"{conv_id}"}}\n\n'
             return
 
-        # 1. Conversation
+        # 1. Conversation + message utilisateur
         conv_id = history_service.get_or_create_conversation(
             conversation_id=conversation_id,
             first_message=message,
@@ -185,20 +197,20 @@ class ChatService:
         )
         history_service.add_message(conv_id, "user", message)
 
-        # 2. Contexte agricole
+        # 2. Memoire courte + contexte agricole
+        history = history_service.recent_messages(conv_id, limit=MEMORY_TURNS)
         context_chunks, regional_info = self._retrieve(message)
-
-        user_prompt = self._build_user_prompt(message, context_chunks, regional_info)
 
         # 3. Yield metadata event
         yield f'data: {{"event":"start","conversation_id":"{conv_id}"}}\n\n'
 
-        # 4. Stream depuis Ollama
+        # 4. Stream depuis Ollama en multi-tours
         full_response = ""
         try:
-            async for token in ollama_service.stream(
-                prompt=user_prompt,
-                system=IMARIKA_SYSTEM_PROMPT,
+            async for token in ollama_service.stream_chat(
+                history=history,
+                system=IMARIKA_SYSTEM_PROMPT
+                + self._context_block(context_chunks, regional_info),
                 temperature=0.3,
                 num_predict=settings.CHAT_MAX_TOKENS,
             ):

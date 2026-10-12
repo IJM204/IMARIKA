@@ -1,4 +1,4 @@
-﻿import uuid
+import uuid
 from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any
 from backend.core.database import get_connection
@@ -90,6 +90,34 @@ class HistoryService:
                     "content": content,
                     "created_at": now
                 }
+        finally:
+            conn.close()
+
+    @staticmethod
+    def recent_messages(
+        conversation_id: str,
+        limit: int = 6,
+    ) -> List[Dict[str, str]]:
+        """Derniers `limit` messages d'une conversation, ordre chronologique.
+
+        Servira de memoire courte pour le LLM (format role/content Ollama).
+        Retourne [] si la conversation n'existe pas.
+        """
+        conn = get_connection()
+        try:
+            cur = conn.execute(
+                """SELECT sender, content FROM (
+                     SELECT sender, content, created_at
+                     FROM messages WHERE conversation_id = ?
+                     ORDER BY created_at DESC LIMIT ?
+                   ) ORDER BY created_at ASC""",
+                (conversation_id, limit),
+            )
+            return [
+                {"role": "user" if r["sender"] == "user" else "assistant",
+                 "content": r["content"]}
+                for r in cur.fetchall()
+            ]
         finally:
             conn.close()
 

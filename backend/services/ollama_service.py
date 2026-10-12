@@ -7,7 +7,7 @@ Plus de subprocess.run(["ollama", "run", ...])
 import httpx
 import json
 import asyncio
-from typing import AsyncIterator, Optional, Dict, Any
+from typing import AsyncIterator, Optional, Dict, Any, List
 from pathlib import Path
 import sys
 
@@ -89,6 +89,49 @@ class OllamaService:
     #  Generation standard (reponse complete)                              #
     # ------------------------------------------------------------------ #
 
+    # ------------------------------------------------------------------ #
+    #  Generation standard (reponse complete)                              #
+    # ------------------------------------------------------------------ #
+
+    async def chat(
+        self,
+        history: List[dict],
+        system: Optional[str] = None,
+        model: Optional[str] = None,
+        temperature: float = 0.3,
+        num_predict: int = 256,
+    ) -> str:
+        """Envoie une conversation multi-tours (messages role/content) a
+        Ollama /api/chat et retourne la reponse complete.
+        `history` contient deja la question utilisateur courante en dernier."""
+        target_model = model or self.model
+        messages = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        messages.extend(history)
+
+        payload = {
+            "model": target_model,
+            "messages": messages,
+            "stream": False,
+            "think": False,
+            "keep_alive": self.keep_alive,
+            "options": self._options(temperature, num_predict),
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(
+                    f"{self.base_url}/api/chat",
+                    json=payload,
+                )
+                response.raise_for_status()
+                data = response.json()
+                content = data.get("message", {}).get("content", "")
+                return content.strip()
+        except Exception as e:
+            raise RuntimeError(f"Erreur de communication avec Ollama: {str(e)}")
+
     async def generate(
         self,
         prompt: str,
@@ -141,6 +184,56 @@ class OllamaService:
     # ------------------------------------------------------------------ #
     #  Streaming (Server-Sent Events)                                      #
     # ------------------------------------------------------------------ #
+
+    async def stream_chat(
+        self,
+        history: List[dict],
+        system: Optional[str] = None,
+        model: Optional[str] = None,
+        temperature: float = 0.3,
+        num_predict: int = 256,
+    ) -> AsyncIterator[str]:
+        """Version streaming multi-tours de `chat` : yielde les tokens au fur
+        et a mesure. `history` contient la question courante en dernier."""
+        target_model = model or self.model
+        messages = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        messages.extend(history)
+
+        payload = {
+            "model": target_model,
+            "messages": messages,
+            "stream": True,
+            "think": False,
+            "keep_alive": self.keep_alive,
+            "options": self._options(temperature, num_predict),
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                async with client.stream(
+                    "POST",
+                    f"{self.base_url}/api/chat",
+                    json=payload,
+                ) as response:
+                    response.raise_for_status()
+                    async for line in response.aiter_lines():
+                        if not line:
+                            continue
+                        try:
+                            chunk = json.loads(line)
+                            token = chunk.get("message", {}).get("content", "")
+                            if token:
+                                yield token
+                            if chunk.get("done", False):
+                                break
+                        except json.JSONDecodeError:
+                            continue
+        except httpx.TimeoutException:
+            yield "\n\n[Délai dépassé — le modèle charge lentement sur CPU. Réessayez dans quelques secondes.]"
+        except Exception as e:
+            yield f"\n\n[Erreur Ollama: {str(e)}]"
 
     async def stream(
         self,
