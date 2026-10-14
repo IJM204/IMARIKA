@@ -872,6 +872,7 @@ function addMsg(who, text, time){
     el.appendChild(m);
   }
   addCopyButton(el, text);
+  $('messages').appendChild(el);
   maybeScroll(true);
   return el;
 }
