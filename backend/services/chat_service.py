@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from backend.services.ollama_service import ollama_service
 from backend.services.knowledge_service import knowledge_service
 from backend.services.history_service import history_service
+from backend.services.plots_service import plots_service
 from backend.services import greeting_service
 from backend.core.config import settings
 from ai.prompts.system_prompts import IMARIKA_SYSTEM_PROMPT
@@ -133,15 +134,17 @@ class ChatService:
         #    conversation (le message courant est le dernier element).
         history = history_service.recent_messages(conv_id, limit=MEMORY_TURNS)
 
-        # 4. Contexte agricole -> bloc systeme dedie
+        # 4. Contexte agricole + parcelles personnelles
         context_chunks, regional_info = self._retrieve(message)
+        plots_block = plots_service.profile_block(user_id) if user_id else ""
 
         # 5. Appeler Ollama en multi-tours
         try:
             response_text = await ollama_service.chat(
                 history=history,
                 system=IMARIKA_SYSTEM_PROMPT
-                + self._context_block(context_chunks, regional_info),
+                + self._context_block(context_chunks, regional_info)
+                + plots_block,
                 temperature=0.3,
                 num_predict=settings.CHAT_MAX_TOKENS,
             )
@@ -197,9 +200,10 @@ class ChatService:
         )
         history_service.add_message(conv_id, "user", message)
 
-        # 2. Memoire courte + contexte agricole
+        # 2. Memoire courte + contexte agricole + parcelles personnelles
         history = history_service.recent_messages(conv_id, limit=MEMORY_TURNS)
         context_chunks, regional_info = self._retrieve(message)
+        plots_block = plots_service.profile_block(user_id) if user_id else ""
 
         # 3. Yield metadata event
         yield f'data: {{"event":"start","conversation_id":"{conv_id}"}}\n\n'
@@ -210,7 +214,8 @@ class ChatService:
             async for token in ollama_service.stream_chat(
                 history=history,
                 system=IMARIKA_SYSTEM_PROMPT
-                + self._context_block(context_chunks, regional_info),
+                + self._context_block(context_chunks, regional_info)
+                + plots_block,
                 temperature=0.3,
                 num_predict=settings.CHAT_MAX_TOKENS,
             ):

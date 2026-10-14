@@ -99,6 +99,24 @@ def init_db():
             """)
 
             # ---------------------------------------------------------- #
+            #  Parcelles « Mes cultures » (isolees par utilisateur)        #
+            # ---------------------------------------------------------- #
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS plots (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    crop TEXT NOT NULL,
+                    region TEXT,
+                    area_ha REAL,
+                    planted_at TEXT,
+                    notes TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                )
+            """)
+
+            # ---------------------------------------------------------- #
             #  Index                                                      #
             # ---------------------------------------------------------- #
             conn.execute(
@@ -108,6 +126,10 @@ def init_db():
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_sessions_user_id "
                 "ON sessions(user_id)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_plots_user_id "
+                "ON plots(user_id)"
             )
     finally:
         conn.close()
