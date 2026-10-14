@@ -1,12 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Menu, Sprout } from 'lucide-react';
 import { motion } from 'framer-motion';
+import WeatherCitySelector from './WeatherCitySelector';
+import { HealthResponse } from '../types';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
+  health: HealthResponse | null;
 }
 
-const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
+const Header: React.FC<HeaderProps> = ({ onToggleSidebar, health }) => {
+  const healthy = health?.status === 'healthy';
+  const degraded = health?.status === 'degraded';
+  const statusLabel = healthy ? 'Online' : degraded ? 'Dégradé' : 'Offline';
+  const dotColor = healthy ? 'bg-green-500' : degraded ? 'bg-yellow-500' : 'bg-red-500';
+
   return (
     <motion.header
       initial={{ y: -20, opacity: 0 }}
@@ -32,15 +40,21 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
             </p>
           </div>
         </div>
+
+        <WeatherCitySelector
+          onCityChange={city => console.log('City changed:', city)}
+        />
       </div>
 
       <div className="flex items-center space-x-2">
         <div className="hidden sm:flex items-center space-x-4 text-sm text-gray-500 dark:text-dark-400">
           <span className="flex items-center space-x-1">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span>Online</span>
+            <div className={`w-2 h-2 rounded-full ${dotColor}`}></div>
+            <span>{statusLabel}</span>
           </span>
-          <span>6 Crops Supported</span>
+          <span>
+            {healthy && health?.model_name ? health.model_name : '6 Crops Supported'}
+          </span>
         </div>
       </div>
     </motion.header>
