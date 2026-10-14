@@ -5,6 +5,7 @@ from backend.api.v1.endpoints.chat import router as chat_router
 from backend.api.v1.endpoints.history import router as history_router
 from backend.api.v1.endpoints.auth import router as auth_router
 from backend.api.v1.endpoints.plots import router as plots_router
+from backend.api.v1.endpoints.weather import router as weather_router
 
 api_v1_router = APIRouter()
 
@@ -13,3 +14,4 @@ api_v1_router.include_router(chat_router)
 api_v1_router.include_router(history_router)
 api_v1_router.include_router(auth_router)
 api_v1_router.include_router(plots_router)
+api_v1_router.include_router(weather_router)
