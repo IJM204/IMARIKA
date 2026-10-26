@@ -8,10 +8,11 @@ import { Message } from '../types';
 interface ChatAreaProps {
   messages: Message[];
   isTyping: boolean;
+  isStreaming?: boolean;
   onSendMessage: (message: string) => void;
 }
 
-const ChatArea: React.FC<ChatAreaProps> = ({ messages, isTyping, onSendMessage }) => {
+const ChatArea: React.FC<ChatAreaProps> = ({ messages, isTyping, isStreaming, onSendMessage }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -70,7 +71,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({ messages, isTyping, onSendMessage }
 
       {/* Input Area */}
       <div className="border-t border-gray-200 dark:border-dark-700 p-4">
-        <ChatInput onSendMessage={onSendMessage} disabled={isTyping} />
+        <ChatInput onSendMessage={onSendMessage} disabled={isTyping || isStreaming} />
       </div>
     </div>
   );

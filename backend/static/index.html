@@ -232,6 +232,16 @@
   .weather-page{flex:1;overflow-y:auto;padding:20px 18px;max-width:900px;margin:0 auto;width:100%}
   .weather-page h2{font-size:20px;margin-bottom:6px}
   .weather-page .lead{font-size:14px;color:var(--muted);margin-bottom:14px}
+  .w-search-wrap{display:flex;gap:10px;margin-bottom:12px;align-items:center}
+  .w-search-wrap input{flex:1}
+  .w-pills{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
+  .w-pill{
+    background:var(--card);border:1px solid var(--border);border-radius:999px;
+    padding:6px 12px;font-size:12.5px;cursor:pointer;transition:all .15s;
+    color:var(--text);font-weight:500;
+  }
+  .w-pill:hover{background:var(--green-light);border-color:var(--green);color:var(--green-dark);transform:translateY(-1px)}
+  .w-pill.active{background:var(--green);border-color:var(--green-dark);color:#fff}
   .prov-select{margin-bottom:16px;max-width:320px}
   .prov-select select{
     font-family:inherit;font-size:15px;color:var(--text);
@@ -241,11 +251,13 @@
   .w-now{
     background:var(--card);border:1px solid var(--border);border-radius:16px;
     padding:20px;box-shadow:0 3px 14px var(--shadow);margin-bottom:16px;
-    display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+    display:flex;align-items:center;gap:20px;flex-wrap:wrap;
   }
   .w-now .big{font-size:52px;line-height:1}
   .w-now .temp{font-size:34px;font-weight:700}
-  .w-now .cond{font-size:15px;color:var(--muted)}
+  .w-now .cond{font-size:15px;color:var(--muted);margin-top:2px}
+  .w-now .metrics{display:flex;gap:14px;margin-top:8px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+  .w-now .metrics span{display:inline-flex;align-items:center;gap:4px;background:var(--bg);padding:4px 8px;border-radius:6px}
   .w-days{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:16px}
   .w-day{
     background:var(--card);border:1px solid var(--border);border-radius:12px;
@@ -458,11 +470,34 @@ Ex. : « Quand semer le maïs en Saison A ? »<span class="meta">🌾 AGRIBurund
     <div id="view-weather" class="view">
       <div class="weather-page">
         <h2>🌤️ Météo &amp; calendrier agricole</h2>
-        <p class="lead">Prévisions de votre province et conseils de saison — données Open-Meteo.</p>
+        <p class="lead">Prévisions météo en temps réel (Burundi, Afrique de l'Est et monde) — Données Open-Meteo gratuites et sans clé.</p>
 
-        <div class="prov-select">
-          <label for="w-prov" style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Province</label>
-          <select id="w-prov" onchange="loadWeather()"></select>
+        <!-- Recherche directe -->
+        <div class="w-search-wrap">
+          <input type="text" id="w-search-input" placeholder="🔍 Recherchez une ville, commune ou province (ex: Ngozi, Nyanza-Lac, Kigali, Nairobi...)" onkeydown="if(event.key==='Enter') searchWeather()">
+          <button class="btn" onclick="searchWeather()">Voir la météo</button>
+        </div>
+
+        <!-- Raccourcis rapides -->
+        <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px">VILLES &amp; PROVINCES POPULAIRES :</div>
+        <div class="w-pills" id="w-quick-pills">
+          <button class="w-pill" onclick="selectWeatherLoc('Bujumbura')">🇧🇮 Bujumbura</button>
+          <button class="w-pill" onclick="selectWeatherLoc('Gitega')">🇧🇮 Gitega</button>
+          <button class="w-pill" onclick="selectWeatherLoc('Ngozi')">🇧🇮 Ngozi</button>
+          <button class="w-pill" onclick="selectWeatherLoc('Rumonge')">🇧🇮 Rumonge</button>
+          <button class="w-pill" onclick="selectWeatherLoc('Kayanza')">🇧🇮 Kayanza</button>
+          <button class="w-pill" onclick="selectWeatherLoc('Kirundo')">🇧🇮 Kirundo</button>
+          <button class="w-pill" onclick="selectWeatherLoc('Muyinga')">🇧🇮 Muyinga</button>
+          <button class="w-pill" onclick="selectWeatherLoc('Nyanza-Lac')">🇧🇮 Nyanza-Lac</button>
+          <button class="w-pill" onclick="selectWeatherLoc('Kigali')">🇷🇼 Kigali</button>
+          <button class="w-pill" onclick="selectWeatherLoc('Bukavu')">🇨🇩 Bukavu</button>
+          <button class="w-pill" onclick="selectWeatherLoc('Nairobi')">🇰🇪 Nairobi</button>
+          <button class="w-pill" onclick="selectWeatherLoc('Dar es Salaam')">🇹🇿 Dar es Salaam</button>
+        </div>
+
+        <div class="prov-select" style="margin-top:4px">
+          <label for="w-prov" style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px">OU SÉLECTIONNEZ UNE PROVINCE DU BURUNDI :</label>
+          <select id="w-prov" onchange="onProvinceSelected()"></select>
         </div>
 
         <div id="w-content">
@@ -512,33 +547,45 @@ function richHTML(text){
 
 /* ---------------- Vue Météo ---------------- */
 let W_PROVINCES = [];
+let CURRENT_WEATHER_LOC = 'Gitega';
+
 async function initWeatherProvinces(){
   if(W_PROVINCES.length) return;
   try{
     const data = await api('/api/v1/weather/provinces');
     W_PROVINCES = data.provinces || [];
     const sel = $('w-prov');
-    sel.innerHTML = W_PROVINCES.map(p=>'<option value="'+esc(p)+'">'+esc(p)+'</option>').join('');
-    // Province du profil par defaut
-    if(USER && USER.region){
-      const match = W_PROVINCES.find(p=>p.toLowerCase().startsWith(String(USER.region).toLowerCase().slice(0,5)));
-      if(match) sel.value = match;
+    if(sel){
+      sel.innerHTML = '<option value="">-- Choisissez une province --</option>' +
+        W_PROVINCES.map(p=>'<option value="'+esc(p)+'">'+esc(p)+'</option>').join('');
+      // Province du profil par defaut
+      if(USER && USER.region){
+        const match = W_PROVINCES.find(p=>p.toLowerCase().startsWith(String(USER.region).toLowerCase().slice(0,5)));
+        if(match) {
+          sel.value = match;
+          CURRENT_WEATHER_LOC = match;
+        }
+      }
     }
   }catch(e){ /* fallback silencieux */ }
 }
 
-let WEATHER_LOADED = false;
-async function loadWeather(force){
-  if(WEATHER_LOADED && !force) return;
-  await initWeatherProvinces();
-  const prov = $('w-prov') ? $('w-prov').value : null;
+async function fetchWeatherFor(locQuery){
+  if(!locQuery || !locQuery.trim()) return;
+  CURRENT_WEATHER_LOC = locQuery.trim();
   const box = $('w-content');
-  if(!prov){ return; }
-  box.innerHTML = '<div style="font-size:13px;color:var(--muted)">Chargement…</div>';
+  box.innerHTML = '<div style="font-size:14px;color:var(--muted);padding:16px 0">🌤️ Chargement de la météo pour <b>'+esc(CURRENT_WEATHER_LOC)+'</b>…</div>';
+
+  // Highlight pill si correspond
+  document.querySelectorAll('.w-pill').forEach(btn => {
+    const text = btn.textContent.replace(/^[^\s]+\s*/, '').trim().toLowerCase();
+    btn.classList.toggle('active', text === CURRENT_WEATHER_LOC.toLowerCase());
+  });
+
   try{
-    const w = await api('/api/v1/weather?province='+encodeURIComponent(prov));
+    const w = await api('/api/v1/weather?location='+encodeURIComponent(CURRENT_WEATHER_LOC));
     if(!w.available){
-      box.innerHTML = '<div class="w-err">⚠ '+(w.error||'Service météo indisponible.')+'</div>';
+      box.innerHTML = '<div class="w-err">⚠️ '+(w.error||'Service météo momentanément indisponible.')+'</div>';
       return;
     }
     const cur = w.current || {};
@@ -546,28 +593,71 @@ async function loadWeather(force){
     const days = (w.daily||[]).map(d=>{
       const dt = new Date(d.date+'T00:00:00');
       const lbl = dt.toLocaleDateString('fr-FR',{weekday:'short'});
+      const rain = d.rain_mm != null ? d.rain_mm : 0;
       return '<div class="w-day"><div class="d">'+lbl.charAt(0).toUpperCase()+lbl.slice(1)+'</div>'+
-        '<div class="e">'+d.emoji+'</div>'+
+        '<div class="e">'+(d.emoji||'⛅')+'</div>'+
         '<div class="t">'+Math.round(d.t_max)+'° / '+Math.round(d.t_min)+'°</div>'+
-        '<div class="r">💧 '+(d.rain_mm!=null?d.rain_mm:0)+' mm</div></div>';
+        '<div class="r">💧 '+rain+' mm</div></div>';
     }).join('');
+
+    const hum = cur.humidity != null ? '<span>💧 Humidité : '+cur.humidity+'%</span>' : '';
+    const wind = cur.wind_speed != null ? '<span>💨 Vent : '+cur.wind_speed+' km/h</span>' : '';
+    const rainNow = cur.precipitation != null ? '<span>🌧️ Pluie : '+cur.precipitation+' mm</span>' : '';
+    const locTitle = esc(w.location_name || w.province || CURRENT_WEATHER_LOC) + (w.country ? ' ('+esc(w.country)+')' : '');
+
     box.innerHTML =
       '<div class="w-now">'+
         '<div class="big">'+(cur.emoji||'🌡️')+'</div>'+
-        '<div><div class="temp">'+(cur.temperature!=null?Math.round(cur.temperature):'—')+' °C</div>'+
-        '<div class="cond">'+esc(cur.label||'')+' · '+esc(w.province)+'</div></div>'+
+        '<div style="flex:1">'+
+          '<div class="temp">'+(cur.temperature!=null?Math.round(cur.temperature):'—')+' °C</div>'+
+          '<div class="cond">'+esc(cur.label||'Temps actuel')+' · <b>'+locTitle+'</b></div>'+
+          '<div class="metrics">'+hum+wind+rainNow+'<span>🌧️ Cumul 5j : '+(w.rain_5d_mm||0)+' mm</span></div>'+
+        '</div>'+
       '</div>'+
-      (w.advice ? '<div class="w-advice">💡 '+esc(w.advice)+'</div>' : '')+
+      (w.advice ? '<div class="w-advice">💡 <b>Conseil agricole :</b> '+esc(w.advice)+'</div>' : '')+
       '<div class="w-days">'+days+'</div>'+
+      (season && season.name ?
       '<div class="w-season">'+
-        '<h3>📅 '+esc(season.name||'')+'</h3>'+
+        '<h3>📅 '+esc(season.name)+'</h3>'+
         '<div class="win">'+esc(season.window||'')+'</div>'+
         '<ul>'+((season.tasks||[]).map(t=>'<li>'+esc(t)+'</li>').join(''))+'</ul>'+
-      '</div>';
-    WEATHER_LOADED = true;
+      '</div>' : '');
   }catch(err){
-    box.innerHTML = '<div class="w-err">⚠ '+esc(err.message)+'</div>';
+    box.innerHTML = '<div class="w-err">⚠️ Erreur météo : '+esc(err.message)+'</div>';
   }
+}
+
+function searchWeather(){
+  const input = $('w-search-input');
+  if(input && input.value.trim()){
+    fetchWeatherFor(input.value.trim());
+  }
+}
+
+function selectWeatherLoc(locName){
+  const input = $('w-search-input');
+  if(input) input.value = locName;
+  const sel = $('w-prov');
+  if(sel) sel.value = W_PROVINCES.includes(locName) ? locName : '';
+  fetchWeatherFor(locName);
+}
+
+function onProvinceSelected(){
+  const sel = $('w-prov');
+  if(sel && sel.value){
+    const input = $('w-search-input');
+    if(input) input.value = sel.value;
+    fetchWeatherFor(sel.value);
+  }
+}
+
+let WEATHER_LOADED = false;
+async function loadWeather(force){
+  if(WEATHER_LOADED && !force) return;
+  await initWeatherProvinces();
+  const initialLoc = (USER && USER.region) ? USER.region : CURRENT_WEATHER_LOC;
+  await fetchWeatherFor(initialLoc);
+  WEATHER_LOADED = true;
 }
 
 /* ---------------- Vue navigation ---------------- */

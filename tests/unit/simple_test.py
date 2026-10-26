@@ -1,4 +1,16 @@
 #!/usr/bin/env python3
+"""
+[LEGACY] Test Ollama de l'ancienne architecture — obsolète pour le MVP.
+
+Classifie "legacy" : utilise "ollama run llama3" en subprocess alors que le
+MVP tourne avec qwen3:1.7b via l'API HTTP (backend/services/ollama_service.py).
+Exclu de la collecte pytest (tests/conftest.py : collect_ignore).
+
+Le test Ollama du MVP : tests/test_ollama_integration.py
+Execution manuelle conservee : python tests/unit/simple_test.py
+"""
+
+__test__ = False  # ce module n'est pas une suite de tests du MVP
 
 import subprocess
 import json

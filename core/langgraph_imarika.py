@@ -137,18 +137,10 @@ def executor(state: AgentState) -> AgentState:
     
     # Execute weather tool
     if "weather_api" in tools_needed:
-        # Use user's location from session state or extract from query
-        location = "Nairobi"  # Default fallback
+        # Use location from state (set by Streamlit frontend or passed explicitly)
+        location = state.get("user_location", "Nairobi")  # Default fallback
         
-        # Try to get location from session state (if available)
-        try:
-            import streamlit as st
-            if hasattr(st, 'session_state') and hasattr(st.session_state, 'user_location') and st.session_state.user_location:
-                location = st.session_state.user_location
-        except:
-            pass
-        
-        # Extract location from query if mentioned
+        # Extract location from query if mentioned (overrides state)
         for word in query.split():
             if word.lower() in ["nairobi", "kampala", "dar", "kigali", "dodoma", "mombasa", "kisumu", "nakuru"]:
                 location = word
@@ -329,7 +321,7 @@ def create_graph():
     return workflow.compile()
 
 # Main function
-def run_imarika_agent(query: str) -> str:
+def run_imarika_agent(query: str, user_location: str = "Nairobi") -> str:
     """Main function to run the LangGraph agent"""
     app = create_graph()
     
@@ -340,7 +332,8 @@ def run_imarika_agent(query: str) -> str:
         "weather_data": {},
         "knowledge_data": [],
         "final_response": "",
-        "step": "planner"
+        "step": "planner",
+        "user_location": user_location
     }
     
     result = app.invoke(initial_state)

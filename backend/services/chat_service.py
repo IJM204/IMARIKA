@@ -5,6 +5,7 @@ Le chat est multi-tours : les derniers echanges sont reinjectes comme memoire
 courte (`recent_messages`), le contexte CSV part dans un bloc systeme dedie.
 """
 
+import re
 import sys
 from pathlib import Path
 from typing import AsyncIterator, Optional, List
@@ -15,6 +16,7 @@ from backend.services.ollama_service import ollama_service
 from backend.services.knowledge_service import knowledge_service
 from backend.services.history_service import history_service
 from backend.services.plots_service import plots_service
+from backend.services.weather_service import weather_service
 from backend.services import greeting_service
 from backend.core.config import settings
 from ai.prompts.system_prompts import IMARIKA_SYSTEM_PROMPT
@@ -93,6 +95,33 @@ class ChatService:
             kb_result.get("regional_info", ""),
         )
 
+    @staticmethod    def _detect_weather_query(message: str) -> Optional[str]:        """        Détecte si le message demande des prévisions météo pour une ville ou province.        Ex: 'météo Bujumbura', 'temps à Ngozi', 'pluie à Kigali', 'météo'.        Retourne le nom de la localité (ou 'Gitega' par défaut) si détecté, sinon None.        Si aucun lieu n'est spécifié, vérifie localStorage pour la ville sélectionnée.        """
+        clean = (message or "").strip().lower()
+        clean = re.sub(r"[?!.,;:]+$", "", clean).strip()
+
+        # Expression régulière tolérante pour détecter la météo et extraire la ville        pattern = r"(?:meteo|météo|weather|temps\s+qu.?il\s+fait|quel\s+temps(?:\s+fait[- ]il)?|prevision(?:s)?\s+meteo|prévision(?:s)?\s+météo|pluie(?:s)?|\btemps\b)\s+(?:à|a|pour|sur|de|in|au)?\s*([a-zA-Zà-ÿÀ-Ý\s\-]+)"
+        m_loc = re.search(pattern, clean, re.IGNORECASE)
+        if m_loc:
+            loc = m_loc.group(1).strip()
+            # Ignorer les expressions non géographiques
+            if loc and loc.lower() not in (
+                "agricole", "aujourd'hui", "aujourd hui", "demain", "cette semaine",
+                "perdu", "libre", "froid", "chaud", "sec", "humide",
+            ):
+                return loc
+
+        # Mot-clé météo isolé : utiliser la ville sélectionnée en localStorage        if clean in ("meteo", "météo", "la meteo", "la météo", "weather", "climat"):
+            # Vérifier localStorage pour la ville précédemment sélectionnée
+            try:
+                stored_city = localStorage.getItem('selected_weather_city')
+                if stored_city:
+                    return stored_city
+            except Exception:
+                pass
+            return "Gitega"
+
+        return None
+
     async def process_message(
         self,
         message: str,
@@ -118,6 +147,23 @@ class ChatService:
                 "response": fast_reply,
                 "conversation_id": conv_id,
                 "context_used": [],
+            }
+
+        # 0.1 Météo en direct : réponse instantanée (Open-Meteo) sans Ollama
+        weather_loc = self._detect_weather_query(message)
+        if weather_loc:
+            weather_reply = await weather_service.format_chat_response(weather_loc)
+            conv_id = history_service.get_or_create_conversation(
+                conversation_id=conversation_id,
+                first_message=message,
+                user_id=user_id,
+            )
+            history_service.add_message(conv_id, "user", message)
+            history_service.add_message(conv_id, "assistant", weather_reply)
+            return {
+                "response": weather_reply,
+                "conversation_id": conv_id,
+                "context_used": [f"weather_service (Open-Meteo: {weather_loc})"],
             }
 
         # 1. Recuperer/creer la conversation SQLite
@@ -189,6 +235,23 @@ class ChatService:
             safe = fast_reply.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
             yield f'data: {{"event":"token","token":"{safe}"}}\n\n'
             history_service.add_message(conv_id, "assistant", fast_reply)
+            yield f'data: {{"event":"done","conversation_id":"{conv_id}"}}\n\n'
+            return
+
+        # 0.1 Météo en direct : réponse instantanée streaming (Open-Meteo)
+        weather_loc = self._detect_weather_query(message)
+        if weather_loc:
+            weather_reply = await weather_service.format_chat_response(weather_loc)
+            conv_id = history_service.get_or_create_conversation(
+                conversation_id=conversation_id,
+                first_message=message,
+                user_id=user_id,
+            )
+            history_service.add_message(conv_id, "user", message)
+            yield f'data: {{"event":"start","conversation_id":"{conv_id}"}}\n\n'
+            safe = weather_reply.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+            yield f'data: {{"event":"token","token":"{safe}"}}\n\n'
+            history_service.add_message(conv_id, "assistant", weather_reply)
             yield f'data: {{"event":"done","conversation_id":"{conv_id}"}}\n\n'
             return
 

@@ -1,4 +1,15 @@
 #!/usr/bin/env python3
+"""
+[LEGACY] Test de l'ancienne architecture LangGraph/Llama3 — obsolète pour le MVP.
+
+Classifie "legacy" : appelle core.langgraph_imarika (chaine Streamlit/LangGraph +
+"llama3"), alors que le MVP utilise FastAPI + qwen3:1.7b sans LangGraph.
+Exclu de la collecte pytest (tests/conftest.py : collect_ignore).
+
+Le test E2E du MVP : tests/test_api_chat.py + tests/test_streaming.py.
+"""
+
+__test__ = False  # ce module n'est pas une suite de tests du MVP
 
 from core.langgraph_imarika import run_imarika_agent
 

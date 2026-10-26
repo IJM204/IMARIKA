@@ -24,6 +24,7 @@ class AgentState(TypedDict):
     knowledge_data: List[str]
     final_response: str
     step: str
+    user_location: str
 
 # Fast LLM with optimized settings
 llm = OllamaLLM(
@@ -112,6 +113,7 @@ def parallel_executor(state: AgentState) -> AgentState:
     """Execute tools in parallel for speed"""
     query = state["query"]
     tools_needed = state["tools_needed"]
+    user_location = state.get("user_location", "Nairobi")
     
     weather_data = {}
     knowledge_data = []
@@ -120,9 +122,14 @@ def parallel_executor(state: AgentState) -> AgentState:
     with ThreadPoolExecutor(max_workers=2) as executor:
         futures = {}
         
-        # Submit weather task
+        # Submit weather task - use location from state, or extract from query
         if "weather_api" in tools_needed:
-            location = extract_location(query)
+            location = user_location
+            # Override with extracted location from query if mentioned
+            for word in query.split():
+                if word.lower() in ["nairobi", "kampala", "dar", "kigali", "dodoma", "mombasa", "kisumu", "nakuru"]:
+                    location = word
+                    break
             futures["weather"] = executor.submit(weather_tool.run, location)
         
         # Submit knowledge task
@@ -308,7 +315,7 @@ def create_fast_graph():
     return workflow.compile()
 
 # Main functions
-def run_imarika_agent_fast(query: str) -> str:
+def run_imarika_agent_fast(query: str, user_location: str = "Nairobi") -> str:
     """Fast non-streaming version"""
     app = create_fast_graph()
     
@@ -318,16 +325,17 @@ def run_imarika_agent_fast(query: str) -> str:
         "weather_data": {},
         "knowledge_data": [],
         "final_response": "",
-        "step": "planner"
+        "step": "planner",
+        "user_location": user_location
     }
     
     result = app.invoke(initial_state)
     return result["final_response"]
 
-def run_imarika_agent_streaming(query: str) -> Iterator[str]:
+def run_imarika_agent_streaming(query: str, user_location: str = "Nairobi") -> Iterator[str]:
     """Streaming version"""
     # Fast planning and execution
-    state = {"query": query, "tools_needed": [], "weather_data": {}, "knowledge_data": [], "final_response": "", "step": "planner"}
+    state = {"query": query, "tools_needed": [], "weather_data": {}, "knowledge_data": [], "final_response": "", "step": "planner", "user_location": user_location}
     
     # Quick planning
     state = fast_planner(state)

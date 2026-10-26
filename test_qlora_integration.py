@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
-Test Script for QLoRA Integration
-Tests the fine-tuned model integration and compares performance
+[LEGACY] Test d integration QLoRA / LangGraph — obsolète pour le MVP.
+
+Classifie "legacy" : depend du fine-tuning et de LangGraph (ancienne chaine),
+pas du MVP FastAPI + qwen3:1.7b. Non collecte : pytest.ini limite la
+collecte a testpaths = tests.
 """
 
 import os

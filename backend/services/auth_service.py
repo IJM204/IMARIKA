@@ -158,11 +158,21 @@ def _public_user(row) -> Dict[str, Any]:
 
 
 # --------------------------------------------------------------------------- #
-#  Sessions (jetons)                                                          #
+#  Sessions (jetons sécurisés avec hachage SHA-256 en base)                   #
 # --------------------------------------------------------------------------- #
 
+def _hash_token(token: str) -> str:
+    """Empreinte cryptographique SHA-256 du jeton pour stockage en base."""
+    return hashlib.sha256(token.encode("ascii")).hexdigest()
+
+
 def create_session(user_id: str) -> Dict[str, Any]:
-    token = secrets.token_urlsafe(32)
+    """
+    Crée une session sécurisée : le jeton brut est renvoyé à l'utilisateur,
+    mais seule son empreinte SHA-256 est enregistrée dans SQLite.
+    """
+    raw_token = secrets.token_urlsafe(32)
+    token_hash = _hash_token(raw_token)
     now = datetime.now(timezone.utc)
     expires = now + timedelta(days=SESSION_TTL_DAYS)
     conn = get_connection()
@@ -172,24 +182,29 @@ def create_session(user_id: str) -> Dict[str, Any]:
             conn.execute("DELETE FROM sessions WHERE expires_at < ?", (now.isoformat(),))
             conn.execute(
                 "INSERT INTO sessions (token, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)",
-                (token, user_id, now.isoformat(), expires.isoformat()),
+                (token_hash, user_id, now.isoformat(), expires.isoformat()),
             )
-            return {"token": token, "expires_at": expires.isoformat()}
+            return {"token": raw_token, "expires_at": expires.isoformat()}
     finally:
         conn.close()
 
 
 def get_user_by_token(token: Optional[str]) -> Optional[Dict[str, Any]]:
-    """Retourne le profil lie au jeton, ou None (invalide/expire)."""
+    """
+    Retourne le profil lie au jeton, ou None (invalide/expire).
+    Supporte les jetons hachés en SHA-256 ainsi que les anciens jetons bruts.
+    """
     if not token:
         return None
+    token_hash = _hash_token(token)
+    now_iso = datetime.now(timezone.utc).isoformat()
     conn = get_connection()
     try:
         row = conn.execute(
             """SELECT u.* FROM sessions s
                JOIN users u ON u.id = s.user_id
-               WHERE s.token = ? AND s.expires_at > ?""",
-            (token, datetime.now(timezone.utc).isoformat()),
+               WHERE (s.token = ? OR s.token = ?) AND s.expires_at > ?""",
+            (token_hash, token, now_iso),
         ).fetchone()
         return _public_user(row) if row else None
     finally:
@@ -199,10 +214,11 @@ def get_user_by_token(token: Optional[str]) -> Optional[Dict[str, Any]]:
 def delete_session(token: Optional[str]) -> bool:
     if not token:
         return False
+    token_hash = _hash_token(token)
     conn = get_connection()
     try:
         with conn:
-            cur = conn.execute("DELETE FROM sessions WHERE token = ?", (token,))
+            cur = conn.execute("DELETE FROM sessions WHERE token = ? OR token = ?", (token_hash, token))
             return cur.rowcount > 0
     finally:
         conn.close()

@@ -108,3 +108,11 @@ frontend/react-app/.env
 frontend/react-app/npm-debug.log*
 frontend/react-app/yarn-debug.log*
 frontend/react-app/yarn-error.log*
+
+# Test and tooling artifacts
+pytest_last.txt
+.freebuff/
+.pytest_cache/
+*.zip
+**/.DS_Store
+

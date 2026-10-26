@@ -210,7 +210,7 @@ if page == "💬 Chat":
                     full_response = ""
                     
                     with st.spinner("🌾 Imarika is thinking..."):
-                        for chunk in run_imarika_agent_streaming(enhanced_prompt):
+                        for chunk in run_imarika_agent_streaming(enhanced_prompt, st.session_state.user_location):
                             full_response += chunk
                             response_placeholder.markdown(full_response + "▌")  # Cursor effect
                             time.sleep(0.02)  # Smooth streaming
@@ -220,7 +220,7 @@ if page == "💬 Chat":
                 else:
                     # Fast non-streaming response
                     with st.spinner("🚀 Generating response..."):
-                        response = run_imarika_agent_fast(enhanced_prompt)
+                        response = run_imarika_agent_fast(enhanced_prompt, st.session_state.user_location)
                         st.markdown(response)
                         st.session_state.messages.append({"role": "assistant", "content": response})
                         

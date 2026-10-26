@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { User, Sprout } from 'lucide-react';
 import { Message } from '../types';
+import { formatTime } from '../utils/dates';
 
 interface ChatMessageProps {
   message: Message;
@@ -9,6 +10,11 @@ interface ChatMessageProps {
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const isUser = message.sender === 'user';
+
+  // Message assistant encore vide (attente du premier token du streaming)
+  if (!isUser && !message.content) {
+    return null;
+  }
 
   return (
     <motion.div
@@ -42,7 +48,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
         
         {/* Timestamp */}
         <p className={`text-xs text-gray-500 dark:text-dark-400 mt-1 ${isUser ? 'text-right' : ''}`}>
-          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {formatTime(message.timestamp)}
         </p>
       </div>
     </motion.div>

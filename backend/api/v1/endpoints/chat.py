@@ -10,7 +10,12 @@ from backend.services import greeting_service
 from backend.services.chat_service import chat_service
 from backend.services.ollama_service import ollama_service
 
+import asyncio
+
 router = APIRouter()
+
+# Protection matérielle CPU : maximum 2 générations simultanées pour éviter le gel machine
+_LLM_SEMAPHORE = asyncio.Semaphore(2)
 
 
 def _user_id(user: Optional[dict]) -> Optional[str]:
@@ -18,14 +23,14 @@ def _user_id(user: Optional[dict]) -> Optional[str]:
 
 
 async def _ensure_llm(message: str) -> None:
-    """Leve 503 si Ollama est down — sauf pour les salutations, repondues
-    localement sans modele (la conversation reste utilisable)."""
-    if greeting_service.detect(message):
+    """Lève 503 si Ollama est down — sauf pour les salutations et la météo en direct,
+    répondues localement sans modèle (la conversation reste utilisable)."""
+    if greeting_service.detect(message) or chat_service._detect_weather_query(message):
         return
     if not await ollama_service.is_ollama_available():
         raise HTTPException(
             status_code=503,
-            detail="Le service Ollama est indisponible. Verifiez qu il est lance sur http://localhost:11434",
+            detail="Le service Ollama est indisponible. Vérifiez qu'il est lancé sur http://localhost:11434",
         )
 
 
@@ -41,10 +46,11 @@ async def chat_endpoint(
     if not request.message.strip():
         raise HTTPException(status_code=400, detail="Le message ne peut pas etre vide.")
 
-    # Verifier Ollama avant de lancer la generation
+    # Verifier Ollama avant de lancer la generation (sauf météo/salutations)
     await _ensure_llm(request.message)
 
-    try:
+    # Si c'est une requête météo ou salutation, exécution directe sans sémaphore
+    if greeting_service.detect(request.message) or chat_service._detect_weather_query(request.message):
         result = await chat_service.process_message(
             message=request.message,
             conversation_id=request.conversation_id,
@@ -55,6 +61,20 @@ async def chat_endpoint(
             conversation_id=result["conversation_id"],
             context_used=result.get("context_used", []),
         )
+
+    # Protection CPU via sémaphore pour les inférences LLM
+    try:
+        async with _LLM_SEMAPHORE:
+            result = await chat_service.process_message(
+                message=request.message,
+                conversation_id=request.conversation_id,
+                user_id=_user_id(user),
+            )
+            return ChatResponse(
+                response=result["response"],
+                conversation_id=result["conversation_id"],
+                context_used=result.get("context_used", []),
+            )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur interne: {str(e)}")
 

@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+"""
+[LEGACY] Evaluation de l'ancienne architecture LangGraph/Llama3 — obsolète pour le MVP.
+
+Classifie "legacy" : utilise core.langgraph_imarika (Streamlit/LangGraph + llama3).
+Non collecte par pytest (nom hors convention test_*.py).
+
+La suite du MVP : tests/ (fast + marqueur ollama).
+"""
 
 from core.langgraph_imarika import run_imarika_agent
 import time

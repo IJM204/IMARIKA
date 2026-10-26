@@ -4,7 +4,8 @@
 
 @layer base {
   html {
-    @apply dark;
+    /* Le mode sombre est active par la classe "dark" sur <html> (index.html) */
+    color-scheme: dark;
   }
   
   body {

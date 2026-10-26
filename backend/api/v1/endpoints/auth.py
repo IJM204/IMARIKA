@@ -36,12 +36,37 @@ async def register(payload: RegisterRequest):
     return AuthResponse(token=session["token"], user=UserProfile(**user))
 
 
+import time
+from collections import defaultdict
+
+# Suivi des tentatives de connexion pour protection anti-bruteforce (IP -> [timestamps])
+_LOGIN_ATTEMPTS = defaultdict(list)
+
+def _check_login_rate_limit(client_ip: str, max_attempts: int = 10, window_seconds: int = 60):
+    now = time.time()
+    valid_attempts = [t for t in _LOGIN_ATTEMPTS[client_ip] if now - t < window_seconds]
+    _LOGIN_ATTEMPTS[client_ip] = valid_attempts
+    if len(valid_attempts) >= max_attempts:
+        raise HTTPException(
+            status_code=429,
+            detail="Trop de tentatives infructueuses de connexion. Veuillez patienter une minute.",
+        )
+
+
 @router.post("/login", response_model=AuthResponse, summary="Se connecter")
-async def login(payload: LoginRequest):
+async def login(payload: LoginRequest, request: Request):
+    client_ip = request.client.host if request.client else "unknown"
+    _check_login_rate_limit(client_ip)
+
     try:
         user = auth_service.authenticate(payload.username, payload.password)
     except AuthError as e:
+        _LOGIN_ATTEMPTS[client_ip].append(time.time())
         raise HTTPException(status_code=401, detail=str(e))
+
+    # Réinitialisation après connexion réussie
+    if client_ip in _LOGIN_ATTEMPTS:
+        _LOGIN_ATTEMPTS[client_ip] = []
 
     session = auth_service.create_session(user["id"])
     return AuthResponse(token=session["token"], user=UserProfile(**user))

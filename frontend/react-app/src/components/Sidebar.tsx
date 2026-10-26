@@ -2,6 +2,7 @@ import React from 'react';
 import { Plus, MessageSquare, Settings, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Chat } from '../types';
+import { formatDate } from '../utils/dates';
 
 interface SidebarProps {
   chats: Chat[];
@@ -64,7 +65,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{chat.title}</p>
                 <p className="text-xs text-gray-500 dark:text-dark-400">
-                  {chat.createdAt.toLocaleDateString()}
+                  {formatDate(chat.createdAt)}
                 </p>
               </div>
             </motion.button>
